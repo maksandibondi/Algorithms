@@ -16,29 +16,47 @@ namespace AlgoUtilities {
 	
 	class Individual {
 		static boost::dynamic_bitset<> solution;
+		static int precision;
 		boost::dynamic_bitset<> genes;
 		int fitness = 0;
 	public:
 		Individual();
-		Individual(int& precision);
 		bool getGene(int index);
 		void setGene(int index, bool value);
 		int getFitness();
 		static void setSolution(boost::dynamic_bitset<> sol);
+		static int getPrecision();
 
 	};
 
 	class Population {
-		int precision;
 		std::vector<Individual>* individuals;
 	public:
 		Population();
-		Population(int& size, int& precision);
+		Population(int& size, bool firstIteration);
 		Individual& getIndividual(int& index);
+		void setIndividual(int& index, Individual indiv);
 		Individual& getFittest();
+		void addAnIndividual(Individual indiv);
+		int& size();
 	};
 
 	class GeneticAlgo {
+		 static double uniformRate;
+		 static double mutationRate;
+		 static int tournamentSize;
+		 static bool elitism;
+
+	public:
+
+		GeneticAlgo();
+		GeneticAlgo(double uniformRate, double mutationRate, int tournamentSize, bool elitism);
+
+		static Population evolvePopulation(Population pop); 
+		static Individual tournamentSelection(Population pop);
+		static Individual crossover(Individual indiv1, Individual indiv2);
+		static void mutate(Individual indiv);
+		static void initializeAlgoInput(double uniformRate, double mutationRate, int tournamentSize, bool elitism);
 
 	};
 
