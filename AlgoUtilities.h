@@ -30,7 +30,7 @@ namespace AlgoUtilities {
 	};
 
 	class Population {
-		std::vector<Individual>* individuals;
+		std::vector<Individual>* individuals = nullptr;
 	public:
 		Population();
 		Population(int& size, bool firstIteration);
