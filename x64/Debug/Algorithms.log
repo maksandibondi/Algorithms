@@ -1,0 +1,4 @@
+﻿  AlgoUtilities.cpp
+c:\users\mbondare\downloads\fx adjoint\algorithms\algoutilities.cpp(31): warning C4172: returning address of local variable or temporary: fittest
+  Algorithms.vcxproj -> C:\Users\mbondare\Downloads\FX adjoint\Algorithms\x64\Debug\Algorithms.dll
+  Algorithms.vcxproj -> C:\Users\mbondare\Downloads\FX adjoint\Algorithms\x64\Debug\Algorithms.pdb (Partial PDB)

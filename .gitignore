@@ -2,4 +2,6 @@
 # This .gitignore file was automatically created by Microsoft(R) Visual Studio.
 ################################################################################
 
+
 /.vs/Algorithms/v15/ipch
+/.vs/Algorithms/v15/Browse.VC.opendb
