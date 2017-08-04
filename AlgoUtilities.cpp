@@ -223,6 +223,12 @@ namespace AlgoUtilities {
 
 	std::vector<boost::dynamic_bitset<>> DealData::getMaturityInBits() {
 		// here we have to translate each element of T array to bits and create a vector 
+		std::vector<boost::dynamic_bitset<>> vec();
+		std::vector<double>::iterator i;
+		for (i = T.begin(); i != T.end(); i++) {
+			//boost::dynamic_bitset<> bitT = converttobit(*i);
+		}
+
 	}
 
 	MarketData::MarketData() {
