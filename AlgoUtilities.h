@@ -26,6 +26,7 @@ namespace AlgoUtilities {
 		bool getGene(int index);
 		void setGene(int index, bool value);
 		int getFitness();
+		int getFitnessForModel(const char* model, MarketData md, DealData dd);
 		static void setSolution(boost::dynamic_bitset<> sol);
 		static int getPrecision();
 
@@ -60,6 +61,26 @@ namespace AlgoUtilities {
 		static void mutate(Individual indiv);
 		static void initializeAlgoInput(double uniformRate, double mutationRate, int tournamentSize, bool elitism);
 
+	};
+
+
+
+
+	static class DealData {
+	public:
+		std::vector<double> T;
+		double K;
+		DealData();
+		std::vector<boost::dynamic_bitset<>> getMaturityInBits();
+	};
+
+	static class MarketData {
+	public:
+		double S;
+		double r;
+		std::vector<double> prices;
+		MarketData();
+		std::vector<boost::dynamic_bitset<>> getPricesInBits();
 	};
 
 }

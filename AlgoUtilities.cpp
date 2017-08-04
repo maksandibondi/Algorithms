@@ -62,7 +62,7 @@ namespace AlgoUtilities {
 
 
 
-
+	// new individual creates an individual with certain combination of genes
 	Individual::Individual() {
 
 		genes.resize(precision, false);
@@ -94,6 +94,22 @@ namespace AlgoUtilities {
 		}
 		this->fitness = fit;
 		return fit;
+	}
+
+	int Individual::getFitnessForModel(const char* model, MarketData md, DealData dd) {
+		int fit = 0;
+		int sz = (this->genes).size();
+
+		if (model == "BS") {
+			for (int i = 0; i < sz; i++) {
+
+				if (BSPricebitwise(md, dd) == (solution[i])) {
+					fit++;
+				}
+			}
+			this->fitness = fit;
+			return fit;
+		}
 	}
 
 	void Individual::setSolution(boost::dynamic_bitset<> sol) {
@@ -193,5 +209,30 @@ namespace AlgoUtilities {
 	int GeneticAlgo::tournamentSize = 5;
 	bool GeneticAlgo::elitism = 0;
 
+
+
+
+
+
+
+
+	DealData::DealData() {
+		K = 50;
+		T = { 0.25, 0.5, 0.75, 1 };
+	}
+
+	std::vector<boost::dynamic_bitset<>> DealData::getMaturityInBits() {
+		// here we have to translate each element of T array to bits and create a vector 
+	}
+
+	MarketData::MarketData() {
+		S = 50;
+		r = 0;
+		prices = { 1.2, 2.2, 3.2, 4.2};
+	}
+
+	std::vector<boost::dynamic_bitset<>> MarketData::getPricesInBits() {
+		// here we have to translate each element of prices array to bits and create a vector 
+	}
 
 }
