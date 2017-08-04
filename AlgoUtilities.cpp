@@ -6,33 +6,43 @@ namespace AlgoUtilities {
 
 	Population::Population(int& size, bool firstIteration) {
 
-		this->individuals = new std::vector<Individual>(size);
-
+		/*
+		std::vector<Individual> individuals(0);
+		individuals.resize(size);
 		if (firstIteration) {
 
 			std::vector<Individual>::iterator i;
-			for (i = (*individuals).begin(); i != (*individuals).end(); i++) {
+			for (i = individuals.begin(); i != individuals.end(); i++) {
 				Individual* newIndividual = new Individual();
 				*i = *newIndividual;
 				delete newIndividual;
 			}
-
+			
 		}
+		*/
+
+		for (int i = 0; i < size; i++) {
+			Individual* newIndividual = new Individual();
+			individuals.push_back(*newIndividual);
+			delete newIndividual;
+		}
+
+
 	}
 
 	Individual& Population::getIndividual(int& index) {
-		return (*individuals)[index];
+		return individuals[index];
 	}
 
 	void Population::setIndividual(int& index, Individual indiv) {
-		(*individuals)[index] = indiv;
+		individuals[index] = indiv;
 	}
 
-	Individual& Population::getFittest() {
-		Individual fittest = (*individuals)[0];
+	Individual Population::getFittest() {
+		Individual fittest = individuals[0];
 		// Loop through individuals to find fittest
-		int sz = individuals->size();
-		for (int i = 1; i < sz; i++) {
+		int sz = individuals.size();
+		for (int i = 0; i < sz; i++) {
 
 			if (fittest.getFitness() <= getIndividual(i).getFitness()) {
 				fittest = getIndividual(i);
@@ -42,11 +52,11 @@ namespace AlgoUtilities {
 	}
 
 	void Population::addAnIndividual(Individual indiv) {
-		individuals->push_back(indiv);
+		individuals.push_back(indiv);
 	}
 
-	int& Population::size() {
-		int sz = individuals->size();
+	int Population::size() {
+		int sz = individuals.size();
 		return sz;
 	}
 
@@ -55,15 +65,17 @@ namespace AlgoUtilities {
 
 	Individual::Individual() {
 
+		genes.resize(precision, false);
 				
 		for (int i = 0; i < precision; i++) {
-			setGene(i, (bool)std::round(rand()));
+			setGene(i, (bool)std::round((double)rand()/ (double)RAND_MAX));
 		}
 
 	}
 	
 	bool Individual::getGene(int index) {
-		return (bool)genes[index];
+		bool gene = (bool)genes[index];
+		return gene;
 	}
 
 	void Individual::setGene(int index, bool value) {
@@ -71,7 +83,7 @@ namespace AlgoUtilities {
 	}
 
 	int Individual::getFitness() {
-		int fit = this->fitness;
+		int fit = 0;
 		int sz = (this->genes).size();
 
 		for (int i = 0; i < sz; i++) {
@@ -80,6 +92,7 @@ namespace AlgoUtilities {
 				fit++;
 			}
 		}
+		this->fitness = fit;
 		return fit;
 	}
 
@@ -96,7 +109,7 @@ namespace AlgoUtilities {
 
 	Population GeneticAlgo::evolvePopulation(Population pop) {
 		int size = pop.size();
-		Population* newPopulation = new Population(size, 0);
+		Population* newPopulation = new Population(size, false);
 		// Keep the best individual
 		if (elitism) {
 			newPopulation->addAnIndividual(pop.getFittest());
@@ -125,7 +138,7 @@ namespace AlgoUtilities {
 		// Loop through genes
 		for (int i = 0; i < precision; i++) {
 			// Crossover
-			if (rand() <= uniformRate) {
+			if ((double)rand()/(double)RAND_MAX <= uniformRate) {
 				newSol->setGene(i, indiv1.getGene(i));
 			}
 			else {
@@ -140,9 +153,9 @@ namespace AlgoUtilities {
 		int precision = Individual::getPrecision();
 		// Loop through genes
 		for (int i = 0; i < precision; i++) {
-			if (rand() <= mutationRate) {
+			if ((double)rand()/(double)RAND_MAX <= mutationRate) {
 				// Create random gene
-				bool gene = (bool)round(rand());
+				bool gene = (bool)round((double)rand()/(double)RAND_MAX);
 				indiv.setGene(i, gene);
 			}
 		}
@@ -150,17 +163,18 @@ namespace AlgoUtilities {
 
 	// takes some random individuals from population and chooses the fittest
 	Individual GeneticAlgo::tournamentSelection(Population pop) {
+		Individual* fittest = new Individual();
 		int sz = pop.size();
 		// Create a tournament population
-		Population* tournament = new Population(tournamentSize, 0);
+		Population* tournament = new Population(tournamentSize, false);
 		// For each place in the tournament get a random individual
 		for (int i = 0; i < tournamentSize; i++) {
-			int randomId = (int)(rand() * sz);
+			int randomId = (int)(((double)rand()/(double)RAND_MAX) * (sz-1));
 			tournament->setIndividual(i, pop.getIndividual(randomId));
 		}
 		// Get the fittest
-		Individual fittest = tournament->getFittest();
-		return fittest;
+		*fittest = tournament->getFittest();
+		return *fittest;
 	}
 
 	// initialize static algo input

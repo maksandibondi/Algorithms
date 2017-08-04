@@ -10,6 +10,8 @@
 #include <algorithm>
 #include <cmath>
 #include <boost/dynamic_bitset.hpp>
+#include <iostream>
+#include <random>
 
 
 namespace AlgoUtilities {
@@ -30,15 +32,15 @@ namespace AlgoUtilities {
 	};
 
 	class Population {
-		std::vector<Individual>* individuals = nullptr;
+		std::vector<Individual> individuals;
 	public:
 		Population();
 		Population(int& size, bool firstIteration);
 		Individual& getIndividual(int& index);
 		void setIndividual(int& index, Individual indiv);
-		Individual& getFittest();
+		Individual getFittest();
 		void addAnIndividual(Individual indiv);
-		int& size();
+		int size();
 	};
 
 	class GeneticAlgo {
