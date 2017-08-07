@@ -51,6 +51,19 @@ namespace AlgoUtilities {
 		return fittest;
 	}
 
+	Individual Population::getFittestForBS(MarketData md, DealData dd) {
+		Individual fittest = individuals[0];
+		// Loop through individuals to find fittest
+		int sz = individuals.size();
+		for (int i = 0; i < sz; i++) {
+
+			if (fittest.getFitnessForBSModel(md,dd) <= getIndividual(i).getFitnessForBSModel(md,dd)) {
+				fittest = getIndividual(i);
+			}
+		}
+		return fittest;
+	}
+
 	void Population::addAnIndividual(Individual indiv) {
 		individuals.push_back(indiv);
 	}
@@ -96,20 +109,19 @@ namespace AlgoUtilities {
 		return fit;
 	}
 
-	int Individual::getFitnessForModel(const char* model, MarketData md, DealData dd) {
+	int Individual::getFitnessForBSModel(MarketData md, DealData dd) {
 		int fit = 0;
 		int sz = (this->genes).size();
+		md.sigma = convert(genes);
 
-		if (model == "BS") {
 			for (int i = 0; i < sz; i++) {
 
-				if (BSPricebitwise(md, dd) == (solution[i])) {
+				if (BSSqrDiffBitwise(md, dd)[i] == (solution[i])) { // compare i-th bit of sum of differences with its bit of solution
 					fit++;
 				}
 			}
 			this->fitness = fit;
 			return fit;
-		}
 	}
 
 	void Individual::setSolution(boost::dynamic_bitset<> sol) {
@@ -221,24 +233,151 @@ namespace AlgoUtilities {
 		T = { 0.25, 0.5, 0.75, 1 };
 	}
 
-	std::vector<boost::dynamic_bitset<>> DealData::getMaturityInBits() {
-		// here we have to translate each element of T array to bits and create a vector 
-		std::vector<boost::dynamic_bitset<>> vec();
-		std::vector<double>::iterator i;
-		for (i = T.begin(); i != T.end(); i++) {
-			//boost::dynamic_bitset<> bitT = converttobit(*i);
-		}
-
-	}
-
 	MarketData::MarketData() {
 		S = 50;
 		r = 0;
-		prices = { 1.2, 2.2, 3.2, 4.2};
+		prices = { 1.2, 1.5, 1.7, 1.72 };
 	}
 
-	std::vector<boost::dynamic_bitset<>> MarketData::getPricesInBits() {
-		// here we have to translate each element of prices array to bits and create a vector 
+
+
+
+
+
+
+	
+	boost::dynamic_bitset<> BSSqrDiffBitwise(MarketData md, DealData dd) {
+		double S = md.S;
+		double r = md.r;
+		double K = dd.K;
+		double sigma = md.sigma;
+		std::vector<double> T = dd.T;
+		double sumOfTheSqrDifference = 0;
+
+		int sz = T.size();
+
+		for (int i = 0; i < sz; i++) {
+
+			double d1 = (1 / (sigma * sqrt(T[i])))*(log(S / K) + (r + pow(sigma, 2) / 1)*T[i]);
+			//cout << "d1 = " << d1.getValue() << endl;
+
+			double d2 = d1 - sigma * sqrt(T[i]);
+			//cout << "d2 = " << d2.getValue() << endl;
+
+			double price = (NormalCDFCody(d1)*S) - (NormalCDFCody(d2)*K*exp(-r*T[i]));
+
+			sumOfTheSqrDifference = sumOfTheSqrDifference + pow((price - md.prices[i]),2);
+		}
+
+		boost::dynamic_bitset<> x(64,sumOfTheSqrDifference);
+
+		return x;
+
+		
+		
+	}
+
+	double NormalCDFCody(double u) {
+		double y = abs(u);
+		if (y > 35.0) {
+			if (u > 0)
+				return 1;
+			else
+				return 0;
+		}
+		if (y <= 0.662912607) {
+			//  evaluate erf() for |u| <= sqrt(2)*0.46875
+			double a0 = 1.161110663653770e-2;
+			double a1 = 3.951404679838207e-1;
+			double a2 = 2.846603853776254e+1;
+			double a3 = 1.887426188426510e+2;
+			double a4 = 3.209377589138469e+3;
+
+			double b0 = 1.767766952966369e-1;
+			double b1 = 8.344316438579620;
+			double b2 = 1.725514762600375e+2;
+			double b3 = 1.813893686502485e+3;
+			double b4 = 8.044716608901563e+3;
+
+			double z = y * y;
+			y = u * ((((a0 * z + a1) * z + a2) * z + a3) * z + a4);
+			y /= ((((b0 * z + b1) * z + b2) * z + b3) * z + b4);
+			return 0.5 + y;
+		}
+		double zinterm = 0.5 * exp(-y * y / 2);
+		if (y <= 4.0) {
+			double c0 = 2.15311535474403846e-8;
+			double c1 = 5.64188496988670089e-1;
+			double c2 = 8.88314979438837594;
+			double c3 = 6.61191906371416295e+1;
+			double c4 = 2.98635138197400131e+2;
+			double c5 = 8.81952221241769090e+2;
+			double c6 = 1.71204761263407058e+3;
+			double c7 = 2.05107837782607147e+3;
+			double c8 = 1.23033935479799725e+3;
+
+			double d0 = 1.0;
+			double d1 = 1.57449261107098347e+1;
+			double d2 = 1.17693950891312499e+2;
+			double d3 = 5.37181101862009858e+2;
+			double d4 = 1.62138957456669019e+3;
+			double d5 = 3.29079923573345963e+3;
+			double d6 = 4.36261909014324716e+3;
+			double d7 = 3.43936767414372164e+3;
+			double d8 = 1.23033935480374942e+3;
+
+			// evaluate erfc() for sqrt(2)*0.46875 <= |u| <= sqrt(2)*4.0
+			y = y / 1.4142135623730950488;
+			double num = ((((((((c0 * y + c1) * y + c2) * y + c3) * y + c4) * y + c5) * y + c6) * y + c7) * y + c8);
+			double den = ((((((((d0 * y + d1) * y + d2) * y + d3) * y + d4) * y + d5) * y + d6) * y + d7) * y + d8);
+
+			y = num / den;
+			y = zinterm * y;
+		}
+		else {
+			double p0 = 1.63153871373020978e-2;
+			double p1 = 3.05326634961232344e-1;
+			double p2 = 3.60344899949804439e-1;
+			double p3 = 1.25781726111229246e-1;
+			double p4 = 1.60837851487422766e-2;
+			double p5 = 6.58749161529837803e-4;
+
+			double q0 = 1.00000000000000000;
+			double q1 = 2.56852019228982242;
+			double q2 = 1.87295284992346047;
+			double q3 = 5.27905102951428412e-1;
+			double q4 = 6.05183413124413191e-2;
+			double q5 = 2.33520497626869185e-3;
+			// evaluate erfc() for |u| > sqrt(2)*4.0
+			double z = zinterm * 1.41421356237309504880 / y;
+			y = 2 / (y * y);
+			y = y * (((((p0 * y + p1) * y + p2) * y + p3) * y + p4) * y + p5) / (((((q0 * y + q1) * y + q2) * y + q3) * y + q4) * y + q5);
+			y = z*(0.564189583547756287 - y);
+		}
+
+		if (u < 0)
+			return y;
+		return 1 - y;
+	}
+
+	double convert(boost::dynamic_bitset<> const& bs) {
+		std::bitset<64> myBit(0);
+		for (boost::dynamic_bitset<>::size_type i = 0; i < bs.size(); i++) {
+			myBit[i] = bs[i];
+		}		
+		static_assert(sizeof(uint64_t) == sizeof(double), "Cannot use this!");
+
+		uint64_t const u = myBit.to_ullong();
+		double d;
+
+		// Aliases to `char*` are explicitly allowed in the Standard (and only them)
+		char const* cu = reinterpret_cast<char const*>(&u);
+		char* cd = reinterpret_cast<char*>(&d);
+
+		// Copy the bitwise representation from u to d
+		memcpy(cd, cu, sizeof(u));
+
+		return d;
 	}
 
 }

@@ -1,3 +1,5 @@
 ﻿  unittest1.cpp
+c:\users\mbondare\downloads\fx adjoint\algorithms\algoutilities.h(27): warning C4091: 'static ': ignored on left of 'AlgoUtilities::DealData' when no variable is declared
+c:\users\mbondare\downloads\fx adjoint\algorithms\algoutilities.h(37): warning C4091: 'static ': ignored on left of 'AlgoUtilities::MarketData' when no variable is declared
   UnitTest.vcxproj -> C:\Users\mbondare\Downloads\FX adjoint\Algorithms\x64\Debug\UnitTest.dll
   UnitTest.vcxproj -> C:\Users\mbondare\Downloads\FX adjoint\Algorithms\x64\Debug\UnitTest.pdb (Partial PDB)

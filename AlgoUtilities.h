@@ -12,10 +12,30 @@
 #include <boost/dynamic_bitset.hpp>
 #include <iostream>
 #include <random>
+#include <bitset>
 
 
 namespace AlgoUtilities {
-	
+
+
+	static class DealData {
+	public:
+		std::vector<double> T;
+		double K;
+		DealData();
+		//std::vector<boost::dynamic_bitset<>> getMaturityInBits();
+	};
+
+	static class MarketData {
+	public:
+		double S;
+		double r;
+		double sigma;
+		std::vector<double>  prices;
+		MarketData();
+		//std::vector<boost::dynamic_bitset<>> getPricesInBits();
+	};
+
 	class Individual {
 		static boost::dynamic_bitset<> solution;
 		static int precision;
@@ -26,7 +46,7 @@ namespace AlgoUtilities {
 		bool getGene(int index);
 		void setGene(int index, bool value);
 		int getFitness();
-		int getFitnessForModel(const char* model, MarketData md, DealData dd);
+		int getFitnessForBSModel(MarketData md, DealData dd);
 		static void setSolution(boost::dynamic_bitset<> sol);
 		static int getPrecision();
 
@@ -40,22 +60,23 @@ namespace AlgoUtilities {
 		Individual& getIndividual(int& index);
 		void setIndividual(int& index, Individual indiv);
 		Individual getFittest();
+		Individual getFittestForBS(MarketData md, DealData dd);
 		void addAnIndividual(Individual indiv);
 		int size();
 	};
 
 	class GeneticAlgo {
-		 static double uniformRate;
-		 static double mutationRate;
-		 static int tournamentSize;
-		 static bool elitism;
+		static double uniformRate;
+		static double mutationRate;
+		static int tournamentSize;
+		static bool elitism;
 
 	public:
 
 		GeneticAlgo();
 		GeneticAlgo(double uniformRate, double mutationRate, int tournamentSize, bool elitism);
 
-		static Population evolvePopulation(Population pop); 
+		static Population evolvePopulation(Population pop);
 		static Individual tournamentSelection(Population pop);
 		static Individual crossover(Individual indiv1, Individual indiv2);
 		static void mutate(Individual indiv);
@@ -63,24 +84,10 @@ namespace AlgoUtilities {
 
 	};
 
+	static boost::dynamic_bitset<> BSSqrDiffBitwise(MarketData md, DealData dd);
 
+	static double NormalCDFCody(double u);
 
-
-	static class DealData {
-	public:
-		std::vector<double> T;
-		double K;
-		DealData();
-		std::vector<boost::dynamic_bitset<>> getMaturityInBits();
-	};
-
-	static class MarketData {
-	public:
-		double S;
-		double r;
-		std::vector<double> prices;
-		MarketData();
-		std::vector<boost::dynamic_bitset<>> getPricesInBits();
-	};
+	static double convert(boost::dynamic_bitset<> const& bs);
 
 }
