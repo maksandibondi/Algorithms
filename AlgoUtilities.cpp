@@ -2,7 +2,7 @@
 
 namespace AlgoUtilities {
 
-	Population::Population(){}
+	Population::Population() {}
 
 	Population::Population(int& size, bool firstIteration) {
 
@@ -17,7 +17,7 @@ namespace AlgoUtilities {
 				*i = *newIndividual;
 				delete newIndividual;
 			}
-			
+
 		}
 		*/
 
@@ -57,7 +57,7 @@ namespace AlgoUtilities {
 		int sz = individuals.size();
 		for (int i = 0; i < sz; i++) {
 
-			if (fittest.getFitnessForBSModel(md,dd) <= getIndividual(i).getFitnessForBSModel(md,dd)) {
+			if (fittest.getFitnessForBSModel(md, dd) <= getIndividual(i).getFitnessForBSModel(md, dd)) {
 				fittest = getIndividual(i);
 			}
 		}
@@ -73,13 +73,13 @@ namespace AlgoUtilities {
 		return sz;
 	}
 
-
+	
 
 	// new individual creates an individual with certain combination of genes
 	Individual::Individual() {
 
 		genes.resize(precision, false);
-				
+			
 		for (int i = 0; i < precision; i++) {
 			setGene(i, (bool)std::round((double)rand()/ (double)RAND_MAX));
 		}
@@ -92,7 +92,76 @@ namespace AlgoUtilities {
 	}
 
 	void Individual::setGene(int index, bool value) {
-		genes[index] = value;
+		bool stateMin = false;
+		bool stateMax = false;
+		bool isSign = (index == 0);
+		if (acceptGene(value, stateMin, stateMax, index, isSign)) {
+			genes[index] = value;
+		}
+		else {
+			genes[index] = 1-value;
+		}
+	}
+
+	bool Individual::acceptGene(bool value, bool stateMin, bool stateMax, int index, bool isSign) {
+		bool acceptMin = false;
+		bool acceptMax = false;
+		bool min = GeneticAlgo::minset[index];
+		bool max = GeneticAlgo::maxset[index];
+		
+		switch (isSign) {
+		
+		case (false):
+			// for min
+			if (stateMin == true) {
+				acceptMin = true; // works for negative
+			}
+			else {
+				if (min == 1 && value == 1) {
+					acceptMin = true;
+				}
+				else if (min == 0) {
+					acceptMin = true;
+					if (value == 1) {
+						stateMin = true;
+					}
+				}
+				else if (min == 1) {
+					if (value == 1) {
+						acceptMin = true;
+					}
+				}
+			}
+			// for max
+			if (stateMax == true) {
+				acceptMax = true; // works for negative
+			}
+			else {
+				if (max == 1 && value == 1) {
+					acceptMax = true;
+				}
+				else if (max == 1) {
+					acceptMax = true;
+					if (value == 0) {
+						stateMax = true;
+					}
+				}
+				else if (max == 0) {
+					if (value == 0) {
+						acceptMax = true;
+					}
+				}
+			}
+
+		case (true):
+
+
+
+
+		}
+
+
+
 	}
 
 	int Individual::getFitness() {
@@ -213,6 +282,14 @@ namespace AlgoUtilities {
 		GeneticAlgo::elitism = elitism;
 	}
 
+
+	void GeneticAlgo::setSystemConstraints(boost::dynamic_bitset<> valmin, boost::dynamic_bitset<> valmax) {
+		minset = valmin;
+		maxset = valmax;
+	}
+
+
+
 	// static variables default values
 	boost::dynamic_bitset<> Individual::solution = *(new boost::dynamic_bitset<>(64));
 	int Individual::precision = 64;
@@ -236,6 +313,7 @@ namespace AlgoUtilities {
 	MarketData::MarketData() {
 		S = 50;
 		r = 0;
+		sigma = 0.2;
 		prices = { 1.2, 1.5, 1.7, 1.72 };
 	}
 
@@ -365,17 +443,18 @@ namespace AlgoUtilities {
 		for (boost::dynamic_bitset<>::size_type i = 0; i < bs.size(); i++) {
 			myBit[i] = bs[i];
 		}		
-		static_assert(sizeof(uint64_t) == sizeof(double), "Cannot use this!");
-
-		uint64_t const u = myBit.to_ullong();
-		double d;
+		//static_assert(sizeof(uint64_t) == sizeof(double), "Cannot use this!");
+		
+		uint64_t const u = myBit.to_ullong(); // returns long long const value
+		double d = u;
 
 		// Aliases to `char*` are explicitly allowed in the Standard (and only them)
-		char const* cu = reinterpret_cast<char const*>(&u);
-		char* cd = reinterpret_cast<char*>(&d);
+		char const* cu = reinterpret_cast<char const*>(&u); // long long cons value is rewritten as char
+		char* cd = reinterpret_cast<char*>(&d); 
 
 		// Copy the bitwise representation from u to d
-		memcpy(cd, cu, sizeof(u));
+		memcpy(cd, cu, sizeof(u)); 
+		
 
 		return d;
 	}

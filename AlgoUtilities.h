@@ -47,6 +47,7 @@ namespace AlgoUtilities {
 		void setGene(int index, bool value);
 		int getFitness();
 		int getFitnessForBSModel(MarketData md, DealData dd);
+		bool acceptGene(bool value, bool stateMin, bool stateMax, int index, bool isSign);
 		static void setSolution(boost::dynamic_bitset<> sol);
 		static int getPrecision();
 
@@ -66,6 +67,7 @@ namespace AlgoUtilities {
 	};
 
 	class GeneticAlgo {
+
 		static double uniformRate;
 		static double mutationRate;
 		static int tournamentSize;
@@ -73,15 +75,16 @@ namespace AlgoUtilities {
 
 	public:
 
-		GeneticAlgo();
-		GeneticAlgo(double uniformRate, double mutationRate, int tournamentSize, bool elitism);
-
+		//GeneticAlgo();
+		//GeneticAlgo(double uniformRate, double mutationRate, int tournamentSize, bool elitism);
+		static boost::dynamic_bitset<> minset;
+		static boost::dynamic_bitset<> maxset;
 		static Population evolvePopulation(Population pop);
 		static Individual tournamentSelection(Population pop);
 		static Individual crossover(Individual indiv1, Individual indiv2);
 		static void mutate(Individual indiv);
 		static void initializeAlgoInput(double uniformRate, double mutationRate, int tournamentSize, bool elitism);
-
+		static void setSystemConstraints(boost::dynamic_bitset<> valmin, boost::dynamic_bitset<> valmax);
 	};
 
 	static boost::dynamic_bitset<> BSSqrDiffBitwise(MarketData md, DealData dd);
