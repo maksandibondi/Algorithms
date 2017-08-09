@@ -6,21 +6,6 @@ namespace AlgoUtilities {
 
 	Population::Population(int& size, bool firstIteration) {
 
-		/*
-		std::vector<Individual> individuals(0);
-		individuals.resize(size);
-		if (firstIteration) {
-
-			std::vector<Individual>::iterator i;
-			for (i = individuals.begin(); i != individuals.end(); i++) {
-				Individual* newIndividual = new Individual();
-				*i = *newIndividual;
-				delete newIndividual;
-			}
-
-		}
-		*/
-
 		for (int i = 0; i < size; i++) {
 			Individual* newIndividual = new Individual();
 			individuals.push_back(*newIndividual);
@@ -79,10 +64,12 @@ namespace AlgoUtilities {
 	Individual::Individual() {
 
 		genes.resize(precision, false);
-			
+		bool stateMin = false; // initial state for constraints
+		bool stateMax = false; // initial state for constraints
 		for (int i = 0; i < precision; i++) {
-			setGene(i, (bool)std::round((double)rand()/ (double)RAND_MAX));
+			setGene(i, (bool)std::round((double)rand()/ (double)RAND_MAX), stateMin, stateMax);
 		}
+		double val = GeneticAlgo::convertBitToDouble(genes);
 
 	}
 	
@@ -91,9 +78,8 @@ namespace AlgoUtilities {
 		return gene;
 	}
 
-	void Individual::setGene(int index, bool value) {
-		bool stateMin = false;
-		bool stateMax = false;
+	void Individual::setGene(int index, bool value, bool &stateMin, bool &stateMax) {
+
 		bool isSign = (index == 0);
 		if (acceptGene(value, stateMin, stateMax, index, isSign)) {
 			genes[index] = value;
@@ -103,7 +89,7 @@ namespace AlgoUtilities {
 		}
 	}
 
-	bool Individual::acceptGene(bool value, bool stateMin, bool stateMax, int index, bool isSign) {
+	bool Individual::acceptGene(bool value, bool& stateMin, bool& stateMax, int index, bool isSign) {
 		bool acceptMin = false;
 		bool acceptMax = false;
 		bool min = GeneticAlgo::minset[index];
@@ -153,14 +139,28 @@ namespace AlgoUtilities {
 				}
 			}
 
+			break;
+
 		case (true):
 
+			if (max == 0) {
+				acceptMax = true;
+			}
+			else if (max == 1 && value == 1) {
+				acceptMax = true;
+			} 
 
+			if (min == 1) {
+				acceptMin = true;
+			}
+			else if (min == 0 && value == 0) {
+				acceptMin = true;
+			}
 
-
+			break;
 		}
 
-
+		return acceptMax*acceptMin;
 
 	}
 
@@ -181,7 +181,7 @@ namespace AlgoUtilities {
 	int Individual::getFitnessForBSModel(MarketData md, DealData dd) {
 		int fit = 0;
 		int sz = (this->genes).size();
-		md.sigma = convert(genes);
+		md.sigma = GeneticAlgo::convertBitToDouble(genes);
 
 			for (int i = 0; i < sz; i++) {
 
@@ -193,15 +193,34 @@ namespace AlgoUtilities {
 			return fit;
 	}
 
+	// solution and precision setter
 	void Individual::setSolution(boost::dynamic_bitset<> sol) {
 		solution = sol;
 		precision = sol.size();
 	}
 
+	// solution getter
 	int Individual::getPrecision() {
 		return precision;
 	}
 
+
+
+
+
+
+
+
+
+	//default values
+	double GeneticAlgo::uniformRate = 0.5;
+	double GeneticAlgo::mutationRate = 0.05;
+	int GeneticAlgo::tournamentSize = 5;
+	bool GeneticAlgo::elitism = 0;
+	boost::dynamic_bitset<> Individual::solution (64, 0);
+	int Individual::precision = 64;
+	boost::dynamic_bitset<> GeneticAlgo::minset(64, 0);
+	boost::dynamic_bitset<> GeneticAlgo::maxset(64, 1);
 
 
 	Population GeneticAlgo::evolvePopulation(Population pop) {
@@ -233,13 +252,15 @@ namespace AlgoUtilities {
 		Individual* newSol = new Individual();
 		int precision = Individual::getPrecision();
 		// Loop through genes
+		bool stateMin = false; // initial state for constraints
+		bool stateMax = false; // initial state for constraints
 		for (int i = 0; i < precision; i++) {
 			// Crossover
 			if ((double)rand()/(double)RAND_MAX <= uniformRate) {
-				newSol->setGene(i, indiv1.getGene(i));
+				newSol->setGene(i, indiv1.getGene(i), stateMin, stateMax);
 			}
 			else {
-				newSol->setGene(i, indiv2.getGene(i));
+				newSol->setGene(i, indiv2.getGene(i), stateMin, stateMax);
 			}
 		}
 		return *newSol;
@@ -249,11 +270,13 @@ namespace AlgoUtilities {
 	void GeneticAlgo::mutate(Individual indiv) {
 		int precision = Individual::getPrecision();
 		// Loop through genes
+		bool stateMin = false; // initial state for constraints
+		bool stateMax = false; // initial state for constraints
 		for (int i = 0; i < precision; i++) {
 			if ((double)rand()/(double)RAND_MAX <= mutationRate) {
 				// Create random gene
 				bool gene = (bool)round((double)rand()/(double)RAND_MAX);
-				indiv.setGene(i, gene);
+				indiv.setGene(i, gene, stateMin, stateMax);
 			}
 		}
 	}
@@ -280,29 +303,244 @@ namespace AlgoUtilities {
 		GeneticAlgo::mutationRate = mutationRate;
 		GeneticAlgo::tournamentSize = tournamentSize;
 		GeneticAlgo::elitism = elitism;
+
 	}
 
-
+	// setter for constraints
 	void GeneticAlgo::setSystemConstraints(boost::dynamic_bitset<> valmin, boost::dynamic_bitset<> valmax) {
 		minset = valmin;
 		maxset = valmax;
 	}
+	
+	
+	// binary functionality for constraints
+	boost::dynamic_bitset<> GeneticAlgo::convertDoubleTo64Bit(double value) {
+
+		boost::dynamic_bitset<> result(64, 0);
+		bool sign;
+		// get sign
+		if (value < 0) {
+			sign = 1;
+		}
+		else {
+			sign = 0;
+		}
+
+		// get the integral and fractional part values
+		double integralPart, fractionalPart;
+		fractionalPart = std::modf(value, &integralPart);
+
+		// convert integral and fractional parts to bits
+		boost::dynamic_bitset<> bitIntegralPart = convertIntToBit(integralPart);
+		boost::dynamic_bitset<> bitFractionalPart = convertFractionToBit(fractionalPart);
+		
+		// getting binary exponent (11) and mantissa (52) values
+		boost::dynamic_bitset<> mantissa (52,0);
+		boost::dynamic_bitset<> exponent = getExponentMantissaByNormalization(bitIntegralPart, bitFractionalPart, mantissa);
+
+
+		// setting resulting values
+		result[0] = sign;
+		int k = 1;
+		for (int i = 0; i < 11; i++) {
+			result[k] = exponent[i];
+			k++;
+		}
+		for (int i = 0; i < 52; i++) {
+			result[k] = mantissa[i];
+			k++;
+		}
+
+
+		return result;
+	}
+
+	boost::dynamic_bitset<> GeneticAlgo::convertIntToBit(int value) {
+		int res = value;
+		boost::dynamic_bitset<> temp;
+		if (res == 0) {
+			return boost::dynamic_bitset<>(1, 0);
+		}
+
+		while (res != 0) {
+			int rem = res % 2;
+			res = res / 2;
+			temp.push_back(rem);
+		}
+
+		int sz = temp.size();
+		boost::dynamic_bitset<> bitRepresantation(sz,0);
+		for (int i = 0; i < sz; i++) {
+			bitRepresantation[i] = temp[sz - 1 - i];
+		}
+
+		return bitRepresantation;
+	}
+
+	boost::dynamic_bitset<> GeneticAlgo::convertFractionToBit(double value) {
+		double res = value;
+		boost::dynamic_bitset<> bitRepresentation;
+		if (res == 0) {
+			return boost::dynamic_bitset<>(1, 0);
+		}
+
+
+		while (res != 1) {
+			res = res * 2;
+			if (res > 1) {
+				bitRepresentation.push_back(1);
+				res = res - 1;
+			}
+			else if (res < 1){
+				bitRepresentation.push_back(0);
+			}
+			else {
+				bitRepresentation.push_back(1);
+				break;
+			}
+		}
+
+		return bitRepresentation;
+
+	}
+
+	boost::dynamic_bitset<> GeneticAlgo::getExponentMantissaByNormalization(boost::dynamic_bitset<> bitIntegralPart, boost::dynamic_bitset<> bitFractionalPart, boost::dynamic_bitset<> &mantissa) {
+		int szInt = bitIntegralPart.size();
+		int szFr = bitFractionalPart.size();
+		int posFromSeparator = 0; // power of 2
+		boost::dynamic_bitset<> exponent(11, 0);
+
+		// check the position from the left
+		for (int i = 0; i < szInt; i++) {
+			if (bitIntegralPart[i] == 1) {
+				posFromSeparator = szInt - 1 - i;
+				int k = 0;
+				for (int i = szInt-1-posFromSeparator; i < szInt - 1; i++) {
+					mantissa[k] = bitIntegralPart[i + 1];
+					k++;
+				}
+				for (int i = 0; i < szFr; i++) {
+					mantissa[k] = bitFractionalPart[i];
+					k++;
+				}
+				for (k; k < 52; k++) {
+					mantissa[k] = 0;
+					k++;
+				}
+				exponent = convertIntToBit(1023+posFromSeparator);
+				break;
+			}
+		}
+
+		// if we have 0 on the left check the position from the right
+		if (szInt == 1 && bitIntegralPart[0] == 0) {
+			for (int i = 0; i < szFr; i++) {
+				if (bitFractionalPart[i] == 1) {
+					posFromSeparator = -i;
+					int k = 0;
+					for (int i = -posFromSeparator; i < szFr - 1; i++) {
+						mantissa[k] = bitFractionalPart[i + 1];
+						k++;
+					}
+					for (k; k < 52; k++) {
+						mantissa[k] = 0;
+					}
+					break;
+				}
+			}
+
+		}
+
+		return exponent;
+		
+		
+	}
+
+	int GeneticAlgo::convertBitToInt(boost::dynamic_bitset<> value) {
+		int sz = value.size();
+		int sum = 0;
+		for (int i = 0; i < sz; i++) {
+			sum = sum + value[i]*pow(2, sz - 1 - i);
+		}
+		return sum;
+	}
+
+	double GeneticAlgo::convertBitToFraction(boost::dynamic_bitset<> value) {
+		int sz = value.size();
+		double res = 1.0;
+		for (int i = sz - 1; i > 0; i--) {
+			res = res / 2;
+			if (value[i-1] == 1) {
+				res = 1 + res;
+			}
+		}
+		res = res / 2;
+
+		return res;
+	}
+
+	double GeneticAlgo::convertBitToDouble(boost::dynamic_bitset<> value) {
+		bool signPositive = true;
+		if (value[0] == 1) { signPositive = false; }
+
+		boost::dynamic_bitset<> exponent(11, 0);
+		boost::dynamic_bitset<> mantissa(52, 0);
+		boost::dynamic_bitset<> binIntegralPart;
+		boost::dynamic_bitset<> binFloatingPart;
+		int integralPart = 0;
+		double floatingPart = 0;
+
+		std::vector<bool>test(11,0);
+		int k = 0;
+		for (int i = 1; i < 12; i++) {
+			exponent[k] = value[i];
+			test[k] = value[i];
+			k++;
+			
+		}
+		k = 0;
+		for (int i = 12; i < 64; i++) {
+			mantissa[k] = value[i];
+			k++;
+		}
+		int temp = convertBitToInt(exponent);
+		if (temp == 0) {
+			return 0;
+		}
+		int powerOfTwo = temp - 1023;
+
+		if (powerOfTwo >= 0) {
+			binIntegralPart.push_back(1);
+			for (int i = 0; i < powerOfTwo; i++) {
+				binIntegralPart.push_back(mantissa[i]);
+			}
+			for (int i = powerOfTwo; i < 52; i++) {
+				binFloatingPart.push_back(mantissa[i]);
+			}
+		}
+		else {
+			binIntegralPart.push_back(0);
+			for (int i = 10+powerOfTwo; i < 11; i++) {
+				binFloatingPart.push_back(exponent[i]);
+			}
+			for (int i = 0; i < 52; i++) {
+				binFloatingPart.push_back(mantissa[i]);
+			}
+		}
+		
+		integralPart = convertBitToInt(binIntegralPart);
+		floatingPart = convertBitToFraction(binFloatingPart);
+
+		return integralPart + floatingPart;
+
+	}
 
 
 
-	// static variables default values
-	boost::dynamic_bitset<> Individual::solution = *(new boost::dynamic_bitset<>(64));
-	int Individual::precision = 64;
-	double GeneticAlgo::uniformRate = 0.5;
-	double GeneticAlgo::mutationRate = 0.05;
-	int GeneticAlgo::tournamentSize = 5;
-	bool GeneticAlgo::elitism = 0;
 
 
 
-
-
-
+	
 
 
 	DealData::DealData() {
@@ -318,11 +556,7 @@ namespace AlgoUtilities {
 	}
 
 
-
-
-
-
-
+	
 	
 	boost::dynamic_bitset<> BSSqrDiffBitwise(MarketData md, DealData dd) {
 		double S = md.S;
@@ -458,5 +692,7 @@ namespace AlgoUtilities {
 
 		return d;
 	}
+
+	
 
 }

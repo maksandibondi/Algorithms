@@ -44,10 +44,10 @@ namespace AlgoUtilities {
 	public:
 		Individual();
 		bool getGene(int index);
-		void setGene(int index, bool value);
+		void setGene(int index, bool value, bool &stateMin, bool &stateMax);
 		int getFitness();
 		int getFitnessForBSModel(MarketData md, DealData dd);
-		bool acceptGene(bool value, bool stateMin, bool stateMax, int index, bool isSign);
+		bool acceptGene(bool value, bool& stateMin, bool& stateMax, int index, bool isSign);
 		static void setSolution(boost::dynamic_bitset<> sol);
 		static int getPrecision();
 
@@ -85,6 +85,13 @@ namespace AlgoUtilities {
 		static void mutate(Individual indiv);
 		static void initializeAlgoInput(double uniformRate, double mutationRate, int tournamentSize, bool elitism);
 		static void setSystemConstraints(boost::dynamic_bitset<> valmin, boost::dynamic_bitset<> valmax);
+		static boost::dynamic_bitset<> convertDoubleTo64Bit(double value);
+		static boost::dynamic_bitset<> convertIntToBit(int value);
+		static boost::dynamic_bitset<> convertFractionToBit(double value);
+		static boost::dynamic_bitset<> getExponentMantissaByNormalization(boost::dynamic_bitset<>bitIntegralPart, boost::dynamic_bitset<> bitFractionalPart, boost::dynamic_bitset<> &mantissa);
+		static int convertBitToInt(boost::dynamic_bitset<> value);
+		static double convertBitToFraction(boost::dynamic_bitset<> value);
+		static double convertBitToDouble(boost::dynamic_bitset<> value);
 	};
 
 	static boost::dynamic_bitset<> BSSqrDiffBitwise(MarketData md, DealData dd);
