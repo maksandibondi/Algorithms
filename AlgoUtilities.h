@@ -39,7 +39,8 @@ namespace AlgoUtilities {
 	class Individual {
 		static boost::dynamic_bitset<> solution;
 		static int precision;
-		boost::dynamic_bitset<> genes;
+		boost::dynamic_bitset<> genes; // target variable binary expression
+		double doubleTarget;
 		int fitness = 0;
 	public:
 		Individual();
@@ -57,7 +58,7 @@ namespace AlgoUtilities {
 		std::vector<Individual> individuals;
 	public:
 		Population();
-		Population(int& size, bool firstIteration);
+		Population(int& size);
 		Individual& getIndividual(int& index);
 		void setIndividual(int& index, Individual indiv);
 		Individual getFittest();
@@ -77,14 +78,19 @@ namespace AlgoUtilities {
 
 		//GeneticAlgo();
 		//GeneticAlgo(double uniformRate, double mutationRate, int tournamentSize, bool elitism);
-		static boost::dynamic_bitset<> minset;
-		static boost::dynamic_bitset<> maxset;
+		static boost::dynamic_bitset<> minset; // binary constraints for sigma
+		static boost::dynamic_bitset<> maxset; // binary constraints for sigma
+		static double minval; // double constraint for sigma
+		static double maxval; // double constraint for sigma
+
 		static Population evolvePopulation(Population pop);
 		static Individual tournamentSelection(Population pop);
 		static Individual crossover(Individual indiv1, Individual indiv2);
 		static void mutate(Individual indiv);
 		static void initializeAlgoInput(double uniformRate, double mutationRate, int tournamentSize, bool elitism);
-		static void setSystemConstraints(boost::dynamic_bitset<> valmin, boost::dynamic_bitset<> valmax);
+		static void setSystemBinaryConstraints(boost::dynamic_bitset<> valmin, boost::dynamic_bitset<> valmax);
+		static void setSystemDoubleConstraints(double valmin, double valmax);
+		
 		static boost::dynamic_bitset<> convertDoubleTo64Bit(double value);
 		static boost::dynamic_bitset<> convertIntToBit(int value);
 		static boost::dynamic_bitset<> convertFractionToBit(double value);

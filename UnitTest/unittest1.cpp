@@ -3,6 +3,7 @@
 #include "AlgoUtilities.h"
 #include <iostream>
 #include <vector>
+#include <algorithm>
 
 using namespace Microsoft::VisualStudio::CppUnitTestFramework;
 using namespace AlgoUtilities;
@@ -12,13 +13,13 @@ namespace UnitTest {
 	TEST_CLASS(UnitTest) {
 public:
 
-	TEST_METHOD(TestMethod1) {
+	TEST_METHOD(TestGeneticAlgoPOC) {
 		int precision = 64;
 		boost::dynamic_bitset<> sol(precision);
 		Individual::setSolution(sol);
 		int myPopulationSize = 100;
 
-		Population* myPop = new Population(myPopulationSize, true);
+		Population* myPop = new Population(myPopulationSize);
 		int generationCount = 0;
 		std::vector<int> fit;
 
@@ -61,7 +62,7 @@ public:
 		//Assert::AreEqual(md.sigma, double(precision));
 	}*/
 
-	TEST_METHOD(TestMethod2) {
+	TEST_METHOD(TestGeneticAlgoSettings) {
 
 		GeneticAlgo::initializeAlgoInput(0.5, 0.05, 5, 0);
 		int precision = 64; // precision in bits
@@ -70,11 +71,70 @@ public:
 		int myPopulationSize = 100;
 		boost::dynamic_bitset<> valmin = GeneticAlgo::convertDoubleTo64Bit(0); // add the value of valmin, valmax from web or from algo of conversion
 		boost::dynamic_bitset<> valmax = GeneticAlgo::convertDoubleTo64Bit(2.5);
-		GeneticAlgo::setSystemConstraints(valmin, valmax);
+		GeneticAlgo::setSystemBinaryConstraints(valmin, valmax);
 
 	}
 
-	TEST_METHOD(TestMethod3) {
+	TEST_METHOD(TestConversionIntToBit) {
+
+		int i = 1;
+		boost::dynamic_bitset<> a = GeneticAlgo::convertIntToBit(i);
+		int sz = a.size();
+		std::vector<bool> test(sz, 0);
+		for (int k = 0; k < sz; k++) {
+			test[k] = a[k];
+		}
+		std::vector<bool> test1 = test;
+	}
+	
+	TEST_METHOD(TestConversionFractionToBit) {
+		double i = 0.15;
+		boost::dynamic_bitset<> a = GeneticAlgo::convertFractionToBit(i);
+		int sz = a.size();
+		std::vector<bool> test(sz, 0);
+		for (int k = 0; k < sz; k++) {
+			test[k] = a[k];
+		}
+		std::vector<bool> test1 = test;
+	}
+
+	TEST_METHOD(TestConversionBitToInt) {
+		std::string str = std::string("01011001110");
+		std::reverse(str.begin(), str.end());
+		boost::dynamic_bitset<> testarray(str); // string writes values in the opposite order
+
+		int sz = testarray.size();
+		std::vector<bool> test(sz, 0);
+		for (int k = 0; k < sz; k++) {
+			test[k] = testarray[k];
+		}
+		int value = GeneticAlgo::convertBitToInt(testarray);
+
+	}
+
+	TEST_METHOD(TestConversionBitToFraction) {
+		std::string str = std::string ("01101");
+		std::reverse(str.begin(), str.end());
+		boost::dynamic_bitset<> testarray(str); // string writes values in the opposite order
+
+		int sz = testarray.size();
+		std::vector<bool> test(sz, 0);
+		for (int k = 0; k < sz; k++) {
+			test[k] = testarray[k];
+		}
+
+		double value = GeneticAlgo::convertBitToFraction(testarray);
+	}
+
+	TEST_METHOD(TestConversionBitToDouble) {
+		std::string str = std::string("1100000000001000000000000000000000000000000000000000000000000000");
+		std::reverse(str.begin(), str.end());
+		boost::dynamic_bitset<> testarray(str); // string writes values in the opposite order
+
+		double result = GeneticAlgo::convertBitToDouble(testarray);
+	}
+
+	TEST_METHOD(TestGeneticAlgoBS) {
 		GeneticAlgo::initializeAlgoInput(0.5, 0.05, 5, 0);
 		int precision = 64; // precision in bits
 		boost::dynamic_bitset<> sol(precision);
@@ -82,8 +142,8 @@ public:
 		int myPopulationSize = 100;
 		boost::dynamic_bitset<> valmin = GeneticAlgo::convertDoubleTo64Bit(0); // add the value of valmin, valmax from web or from algo of conversion
 		boost::dynamic_bitset<> valmax = GeneticAlgo::convertDoubleTo64Bit(2.5);
-		GeneticAlgo::setSystemConstraints(valmin, valmax);
-		Population* myPop = new Population(myPopulationSize, true);
+		GeneticAlgo::setSystemBinaryConstraints(valmin, valmax);
+		Population* myPop = new Population(myPopulationSize);
 		int generationCount = 0;
 		std::vector<int> fit;
 
@@ -100,6 +160,34 @@ public:
 		Assert::AreEqual(double(myPop->getFittestForBS(md, dd).getFitnessForBSModel(md, dd)), double(precision));
 		//Assert::AreEqual(md.sigma, double(precision));
 	}
+
+	TEST_METHOD(TestGeneticAlgoBS_WithDoubleSigmaGeneration) {
+		GeneticAlgo::initializeAlgoInput(0.5, 0.05, 5, 0);
+		int precision = 64; // precision in bits
+		boost::dynamic_bitset<> sol(precision);
+		Individual::setSolution(sol);
+		int myPopulationSize = 100;
+		GeneticAlgo::minval = 0;
+		GeneticAlgo::maxval = 1;
+		
+		Population* myPop = new Population(myPopulationSize);
+		int generationCount = 0;
+		std::vector<int> fit;
+
+		DealData dd = DealData::DealData();
+		MarketData md = MarketData::MarketData();
+
+		while (myPop->getFittestForBS(md, dd).getFitnessForBSModel(md, dd) < precision) {
+			//fit.push_back(myPop->getFittest().getFitness());
+			generationCount++;
+			//std::cout << "Generation: " << generationCount << " Fittest: " << myPop->getFittest().getFitness() << std::endl;
+			*myPop = GeneticAlgo::evolvePopulation(*myPop);
+		}
+
+		Assert::AreEqual(double(myPop->getFittestForBS(md, dd).getFitnessForBSModel(md, dd)), double(precision));
+		//Assert::AreEqual(md.sigma, double(precision));
+	}
+	
 
 
 	};

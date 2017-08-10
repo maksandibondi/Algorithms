@@ -4,7 +4,7 @@ namespace AlgoUtilities {
 
 	Population::Population() {}
 
-	Population::Population(int& size, bool firstIteration) {
+	Population::Population(int& size) {
 
 		for (int i = 0; i < size; i++) {
 			Individual* newIndividual = new Individual();
@@ -63,12 +63,27 @@ namespace AlgoUtilities {
 	// new individual creates an individual with certain combination of genes
 	Individual::Individual() {
 
+		bool stateMin;
+		bool stateMax;
+
+			/*genes.resize(precision, false);
+			stateMin = false; // initial state for constraints
+			stateMax = false; // initial state for constraints
+			for (int i = 0; i < precision; i++) {
+				setGene(i, (bool)std::round((double)rand() / (double)RAND_MAX), stateMin, stateMax);
+			}
+			break;*/
+		
 		genes.resize(precision, false);
-		bool stateMin = false; // initial state for constraints
-		bool stateMax = false; // initial state for constraints
+		stateMin = false; // initial state for constraints
+		stateMax = false; // initial state for constraints
+		double sigma = GeneticAlgo::minval + ((double)rand() / (double)RAND_MAX)*(GeneticAlgo::maxval - GeneticAlgo::minval);
+		this->doubleTarget = sigma;
+		boost::dynamic_bitset<> binarySigma = GeneticAlgo::convertDoubleTo64Bit(sigma);
 		for (int i = 0; i < precision; i++) {
-			setGene(i, (bool)std::round((double)rand()/ (double)RAND_MAX), stateMin, stateMax);
+			setGene(i, binarySigma[i], stateMin, stateMax);
 		}
+
 		double val = GeneticAlgo::convertBitToDouble(genes);
 
 	}
@@ -181,7 +196,7 @@ namespace AlgoUtilities {
 	int Individual::getFitnessForBSModel(MarketData md, DealData dd) {
 		int fit = 0;
 		int sz = (this->genes).size();
-		md.sigma = GeneticAlgo::convertBitToDouble(genes);
+		md.sigma = this->doubleTarget;
 
 			for (int i = 0; i < sz; i++) {
 
@@ -221,11 +236,13 @@ namespace AlgoUtilities {
 	int Individual::precision = 64;
 	boost::dynamic_bitset<> GeneticAlgo::minset(64, 0);
 	boost::dynamic_bitset<> GeneticAlgo::maxset(64, 1);
+	double GeneticAlgo::minval = 0; // double constraint for sigma
+	double GeneticAlgo::maxval = 1; // double constraint for sigma
 
 
 	Population GeneticAlgo::evolvePopulation(Population pop) {
 		int size = pop.size();
-		Population* newPopulation = new Population(size, false);
+		Population* newPopulation = new Population(size);
 		// Keep the best individual
 		if (elitism) {
 			newPopulation->addAnIndividual(pop.getFittest());
@@ -286,7 +303,7 @@ namespace AlgoUtilities {
 		Individual* fittest = new Individual();
 		int sz = pop.size();
 		// Create a tournament population
-		Population* tournament = new Population(tournamentSize, false);
+		Population* tournament = new Population(tournamentSize);
 		// For each place in the tournament get a random individual
 		for (int i = 0; i < tournamentSize; i++) {
 			int randomId = (int)(((double)rand()/(double)RAND_MAX) * (sz-1));
@@ -307,11 +324,19 @@ namespace AlgoUtilities {
 	}
 
 	// setter for constraints
-	void GeneticAlgo::setSystemConstraints(boost::dynamic_bitset<> valmin, boost::dynamic_bitset<> valmax) {
+	void GeneticAlgo::setSystemBinaryConstraints(boost::dynamic_bitset<> valmin, boost::dynamic_bitset<> valmax) {
 		minset = valmin;
 		maxset = valmax;
+		minval = convertBitToDouble(valmin);
+		maxval = convertBitToDouble(valmax);
 	}
 	
+	void GeneticAlgo::setSystemDoubleConstraints(double valmin, double valmax) {
+		minval = valmin;
+		maxval = valmax;
+		minset = convertDoubleTo64Bit(valmin);
+		maxset = convertDoubleTo64Bit(valmax);
+	}
 	
 	// binary functionality for constraints
 	boost::dynamic_bitset<> GeneticAlgo::convertDoubleTo64Bit(double value) {
@@ -458,6 +483,12 @@ namespace AlgoUtilities {
 
 	int GeneticAlgo::convertBitToInt(boost::dynamic_bitset<> value) {
 		int sz = value.size();
+		std::vector<bool>test(11, 0);
+		for (int k = 0; k < 11; k++) {
+			test[k] = value[k];
+		}
+
+
 		int sum = 0;
 		for (int i = 0; i < sz; i++) {
 			sum = sum + value[i]*pow(2, sz - 1 - i);
@@ -480,8 +511,8 @@ namespace AlgoUtilities {
 	}
 
 	double GeneticAlgo::convertBitToDouble(boost::dynamic_bitset<> value) {
-		bool signPositive = true;
-		if (value[0] == 1) { signPositive = false; }
+		int sign = 1;
+		if (value[0] == 1) { sign = -1; }
 
 		boost::dynamic_bitset<> exponent(11, 0);
 		boost::dynamic_bitset<> mantissa(52, 0);
@@ -496,8 +527,8 @@ namespace AlgoUtilities {
 			exponent[k] = value[i];
 			test[k] = value[i];
 			k++;
-			
 		}
+
 		k = 0;
 		for (int i = 12; i < 64; i++) {
 			mantissa[k] = value[i];
@@ -531,7 +562,7 @@ namespace AlgoUtilities {
 		integralPart = convertBitToInt(binIntegralPart);
 		floatingPart = convertBitToFraction(binFloatingPart);
 
-		return integralPart + floatingPart;
+		return sign*(integralPart + floatingPart);
 
 	}
 
