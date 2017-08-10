@@ -184,7 +184,9 @@ public:
 			*myPop = GeneticAlgo::evolvePopulation(*myPop);
 		}
 
+		double res = (myPop->getFittestForBS(md, dd)).getTarget();
 		Assert::AreEqual(double(myPop->getFittestForBS(md, dd).getFitnessForBSModel(md, dd)), double(precision));
+		
 		//Assert::AreEqual(md.sigma, double(precision));
 	}
 	

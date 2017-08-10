@@ -78,7 +78,7 @@ namespace AlgoUtilities {
 		stateMin = false; // initial state for constraints
 		stateMax = false; // initial state for constraints
 		double sigma = GeneticAlgo::minval + ((double)rand() / (double)RAND_MAX)*(GeneticAlgo::maxval - GeneticAlgo::minval);
-		this->doubleTarget = sigma;
+		this->target = sigma;
 		boost::dynamic_bitset<> binarySigma = GeneticAlgo::convertDoubleTo64Bit(sigma);
 		for (int i = 0; i < precision; i++) {
 			setGene(i, binarySigma[i], stateMin, stateMax);
@@ -91,6 +91,10 @@ namespace AlgoUtilities {
 	bool Individual::getGene(int index) {
 		bool gene = (bool)genes[index];
 		return gene;
+	}
+
+	double Individual::getTarget() {
+		return target;
 	}
 
 	void Individual::setGene(int index, bool value, bool &stateMin, bool &stateMax) {
@@ -196,7 +200,7 @@ namespace AlgoUtilities {
 	int Individual::getFitnessForBSModel(MarketData md, DealData dd) {
 		int fit = 0;
 		int sz = (this->genes).size();
-		md.sigma = this->doubleTarget;
+		md.sigma = this->target;
 
 			for (int i = 0; i < sz; i++) {
 

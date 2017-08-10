@@ -40,11 +40,12 @@ namespace AlgoUtilities {
 		static boost::dynamic_bitset<> solution;
 		static int precision;
 		boost::dynamic_bitset<> genes; // target variable binary expression
-		double doubleTarget;
+		double target;
 		int fitness = 0;
 	public:
 		Individual();
 		bool getGene(int index);
+		double getTarget();
 		void setGene(int index, bool value, bool &stateMin, bool &stateMax);
 		int getFitness();
 		int getFitnessForBSModel(MarketData md, DealData dd);
