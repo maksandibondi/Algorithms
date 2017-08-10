@@ -162,11 +162,11 @@ public:
 	}
 
 	TEST_METHOD(TestGeneticAlgoBS_WithDoubleSigmaGeneration) {
-		GeneticAlgo::initializeAlgoInput(0.5, 0.05, 5, 0);
+		GeneticAlgo::initializeAlgoInput(0.5, 0.02, 10, 0);
 		int precision = 64; // precision in bits
 		boost::dynamic_bitset<> sol(precision);
 		Individual::setSolution(sol);
-		int myPopulationSize = 100;
+		int myPopulationSize = 50;
 		GeneticAlgo::minval = 0;
 		GeneticAlgo::maxval = 1;
 		
@@ -176,14 +176,15 @@ public:
 
 		DealData dd = DealData::DealData();
 		MarketData md = MarketData::MarketData();
+		int f = myPop->getFittestForBS(md, dd).getFitnessForBSModel(md, dd);
 
 		while (myPop->getFittestForBS(md, dd).getFitnessForBSModel(md, dd) < precision) {
 			//fit.push_back(myPop->getFittest().getFitness());
-			generationCount++;
+			generationCount = generationCount + 1;
 			//std::cout << "Generation: " << generationCount << " Fittest: " << myPop->getFittest().getFitness() << std::endl;
 			*myPop = GeneticAlgo::evolvePopulation(*myPop);
 		}
-
+		double gc = generationCount;
 		double res = (myPop->getFittestForBS(md, dd)).getTarget();
 		Assert::AreEqual(double(myPop->getFittestForBS(md, dd).getFitnessForBSModel(md, dd)), double(precision));
 		

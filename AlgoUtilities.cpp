@@ -579,15 +579,17 @@ namespace AlgoUtilities {
 
 
 	DealData::DealData() {
-		K = 50;
-		T = { 0.25, 0.5, 0.75, 1 };
+		K = double(100);
+		//T = { 0.25, 0.5, 0.75, 1 , 1.25, 1.5};
+		T = { double(30) / double(365) };
 	}
 
 	MarketData::MarketData() {
-		S = 50;
+		S = double(98);
 		r = 0;
-		sigma = 0.2;
-		prices = { 1.2, 1.5, 1.7, 1.72 };
+		sigma = 0;
+		//prices = { 1.2, 1.5, 1.7, 1.72 , 1.725, 1.7256};
+		prices = { 4.2 };
 	}
 
 
@@ -605,7 +607,7 @@ namespace AlgoUtilities {
 
 		for (int i = 0; i < sz; i++) {
 
-			double d1 = (1 / (sigma * sqrt(T[i])))*(log(S / K) + (r + pow(sigma, 2) / 1)*T[i]);
+			double d1 = (1 / (sigma * sqrt(T[i])))*(log(S / K) + (r + pow(sigma, 2) / 2)*T[i]);
 			//cout << "d1 = " << d1.getValue() << endl;
 
 			double d2 = d1 - sigma * sqrt(T[i]);
@@ -616,6 +618,7 @@ namespace AlgoUtilities {
 			sumOfTheSqrDifference = sumOfTheSqrDifference + pow((price - md.prices[i]),2);
 		}
 
+		//boost::dynamic_bitset<> x = GeneticAlgo::convertDoubleTo64Bit(sumOfTheSqrDifference);
 		boost::dynamic_bitset<> x(64,sumOfTheSqrDifference);
 
 		return x;
