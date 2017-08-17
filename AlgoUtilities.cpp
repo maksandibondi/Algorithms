@@ -84,8 +84,16 @@ namespace AlgoUtilities {
 			setGene(i, binarySigma[i], stateMin, stateMax);
 		}
 
-		double val = GeneticAlgo::convertBitToDouble(genes);
+		std::vector<double> checkbin(64, 0);
+		std::vector<double> checkgenes(64, 0);
+		for (int i = 0; i < 64; i++) {
+			
+			checkbin[i] = binarySigma[i]; // binary sigma is well calculated
+			checkgenes[i] = genes[i]; // genes acception algo is not working well
+		}
 
+		double val = GeneticAlgo::convertBitToDouble(genes);
+		double x = val;
 	}
 	
 	bool Individual::getGene(int index) {
@@ -162,17 +170,17 @@ namespace AlgoUtilities {
 
 		case (true):
 
-			if (max == 0) {
+			if (max == 0) { // if max is positive
 				acceptMax = true;
 			}
-			else if (max == 1 && value == 1) {
+			else if (max == 1 && value == 1) { // if max is negative and value is negative
 				acceptMax = true;
 			} 
 
-			if (min == 1) {
+			if (min == 1) { // if min is negative
 				acceptMin = true;
 			}
-			else if (min == 0 && value == 0) {
+			else if (min == 0 && value == 0) { // if min is positive and value is positive
 				acceptMin = true;
 			}
 
@@ -362,11 +370,15 @@ namespace AlgoUtilities {
 		// convert integral and fractional parts to bits
 		boost::dynamic_bitset<> bitIntegralPart = convertIntToBit(integralPart);
 		boost::dynamic_bitset<> bitFractionalPart = convertFractionToBit(fractionalPart);
+		std::vector<bool> testInt = convertBitsetToVector(bitIntegralPart);
+		std::vector<bool> testFloat = convertBitsetToVector(bitFractionalPart);
+
 		
 		// getting binary exponent (11) and mantissa (52) values
 		boost::dynamic_bitset<> mantissa (52,0);
 		boost::dynamic_bitset<> exponent = getExponentMantissaByNormalization(bitIntegralPart, bitFractionalPart, mantissa);
-
+		std::vector<bool> testExp = convertBitsetToVector(exponent);
+		std::vector<bool> testMent = convertBitsetToVector(mantissa);
 
 		// setting resulting values
 		result[0] = sign;
@@ -401,6 +413,36 @@ namespace AlgoUtilities {
 		boost::dynamic_bitset<> bitRepresantation(sz,0);
 		for (int i = 0; i < sz; i++) {
 			bitRepresantation[i] = temp[sz - 1 - i];
+		}
+
+		return bitRepresantation;
+	}
+
+	boost::dynamic_bitset<> GeneticAlgo::convertIntTo11Bit(int value) {
+		int res = value;
+		boost::dynamic_bitset<> temp;
+		if (res == 0) {
+			return boost::dynamic_bitset<>(11, 0);
+		}
+
+		while (res != 0) {
+			int rem = res % 2;
+			res = res / 2;
+			temp.push_back(rem);
+		}
+
+		int sz = temp.size();
+
+
+		boost::dynamic_bitset<> bitRepresantation(11, 0);
+		int i = 0;
+		while (i < 11-sz) {
+			bitRepresantation[i] = 0;
+			i++;
+		}
+		while (i < 11) {
+			bitRepresantation[i] = temp[11-i-1];
+			i++;
 		}
 
 		return bitRepresantation;
@@ -456,7 +498,7 @@ namespace AlgoUtilities {
 					mantissa[k] = 0;
 					k++;
 				}
-				exponent = convertIntToBit(1023+posFromSeparator);
+				exponent = convertIntTo11Bit(1023+posFromSeparator); 
 				break;
 			}
 		}
@@ -465,15 +507,16 @@ namespace AlgoUtilities {
 		if (szInt == 1 && bitIntegralPart[0] == 0) {
 			for (int i = 0; i < szFr; i++) {
 				if (bitFractionalPart[i] == 1) {
-					posFromSeparator = -i;
+					posFromSeparator = -(i+1);
 					int k = 0;
-					for (int i = -posFromSeparator; i < szFr - 1; i++) {
-						mantissa[k] = bitFractionalPart[i + 1];
+					for (int i = -posFromSeparator; i < szFr; i++) {
+						mantissa[k] = bitFractionalPart[i];
 						k++;
 					}
 					for (k; k < 52; k++) {
 						mantissa[k] = 0;
 					}
+					exponent = convertIntTo11Bit(1023 + posFromSeparator);
 					break;
 				}
 			}
@@ -487,12 +530,7 @@ namespace AlgoUtilities {
 
 	int GeneticAlgo::convertBitToInt(boost::dynamic_bitset<> value) {
 		int sz = value.size();
-		std::vector<bool>test(11, 0);
-		for (int k = 0; k < 11; k++) {
-			test[k] = value[k];
-		}
-
-
+		
 		int sum = 0;
 		for (int i = 0; i < sz; i++) {
 			sum = sum + value[i]*pow(2, sz - 1 - i);
@@ -525,11 +563,12 @@ namespace AlgoUtilities {
 		int integralPart = 0;
 		double floatingPart = 0;
 
-		std::vector<bool>test(11,0);
+		std::vector<bool>testexp(11,0);
+		std::vector<bool>testmant(52, 0);
+		
 		int k = 0;
 		for (int i = 1; i < 12; i++) {
 			exponent[k] = value[i];
-			test[k] = value[i];
 			k++;
 		}
 
@@ -538,6 +577,12 @@ namespace AlgoUtilities {
 			mantissa[k] = value[i];
 			k++;
 		}
+		
+		// testing obtained exp and mantissa
+		testexp = convertBitsetToVector(exponent);
+		testmant = convertBitsetToVector(mantissa);
+
+
 		int temp = convertBitToInt(exponent);
 		if (temp == 0) {
 			return 0;
@@ -555,9 +600,10 @@ namespace AlgoUtilities {
 		}
 		else {
 			binIntegralPart.push_back(0);
-			for (int i = 10+powerOfTwo; i < 11; i++) {
-				binFloatingPart.push_back(exponent[i]);
+			for (int i = 0; i < -powerOfTwo-1; i++) {
+				binFloatingPart.push_back(0);
 			}
+			binFloatingPart.push_back(1);
 			for (int i = 0; i < 52; i++) {
 				binFloatingPart.push_back(mantissa[i]);
 			}
@@ -570,7 +616,14 @@ namespace AlgoUtilities {
 
 	}
 
-
+	std::vector<bool> GeneticAlgo::convertBitsetToVector(boost::dynamic_bitset<> array){
+		int sz = array.size();
+		std::vector<bool> vec(sz, 0);
+		for (int k = 0; k < sz; k++) {
+			vec[k] = array[k];
+		}
+		return vec;
+	}
 
 
 
@@ -589,7 +642,7 @@ namespace AlgoUtilities {
 		r = 0;
 		sigma = 0;
 		//prices = { 1.2, 1.5, 1.7, 1.72 , 1.725, 1.7256};
-		prices = { 4.2 };
+		prices = { 2.2 };
 	}
 
 
@@ -618,12 +671,12 @@ namespace AlgoUtilities {
 			sumOfTheSqrDifference = sumOfTheSqrDifference + pow((price - md.prices[i]),2);
 		}
 
-		//boost::dynamic_bitset<> x = GeneticAlgo::convertDoubleTo64Bit(sumOfTheSqrDifference);
-		boost::dynamic_bitset<> x(64,sumOfTheSqrDifference);
+		boost::dynamic_bitset<> x = GeneticAlgo::convertDoubleTo64Bit(sumOfTheSqrDifference);
+		
+		std::vector<bool> test = GeneticAlgo::convertBitsetToVector(x); // testing results
 
 		return x;
 
-		
 		
 	}
 

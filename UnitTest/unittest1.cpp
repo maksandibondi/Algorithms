@@ -77,8 +77,19 @@ public:
 
 	TEST_METHOD(TestConversionIntToBit) {
 
-		int i = 1;
+		int i = 10;
 		boost::dynamic_bitset<> a = GeneticAlgo::convertIntToBit(i);
+		int sz = a.size();
+		std::vector<bool> test(sz, 0);
+		for (int k = 0; k < sz; k++) {
+			test[k] = a[k];
+		}
+		std::vector<bool> test1 = test;
+	}
+
+	TEST_METHOD(TestConversionIntTo11Bit) {
+		int i = 1023;
+		boost::dynamic_bitset<> a = GeneticAlgo::convertIntTo11Bit(i);
 		int sz = a.size();
 		std::vector<bool> test(sz, 0);
 		for (int k = 0; k < sz; k++) {
@@ -126,14 +137,29 @@ public:
 		double value = GeneticAlgo::convertBitToFraction(testarray);
 	}
 
+
+	// to fix
 	TEST_METHOD(TestConversionBitToDouble) {
-		std::string str = std::string("1100000000001000000000000000000000000000000000000000000000000000");
+		std::string str = std::string("0011111101010100100000000010100100000000010100100000000010100100");
 		std::reverse(str.begin(), str.end());
 		boost::dynamic_bitset<> testarray(str); // string writes values in the opposite order
 
 		double result = GeneticAlgo::convertBitToDouble(testarray);
 	}
+	
+	TEST_METHOD(TestConversionDoubleTo64bit) {
+		double sigma = 0.56358531449324012;
+		std::string str = std::string("0011111101011000101111010110011000100111011111000100010111001100");
+		std::reverse(str.begin(), str.end());
+		boost::dynamic_bitset<> testarray(str); // string writes values in the opposite order
 
+		boost::dynamic_bitset<> result = GeneticAlgo::convertDoubleTo64Bit(sigma);
+		std::vector<bool> test1 = GeneticAlgo::convertBitsetToVector(result);
+	}
+
+
+
+	// algos to test 
 	TEST_METHOD(TestGeneticAlgoBS) {
 		GeneticAlgo::initializeAlgoInput(0.5, 0.05, 5, 0);
 		int precision = 64; // precision in bits
@@ -162,13 +188,12 @@ public:
 	}
 
 	TEST_METHOD(TestGeneticAlgoBS_WithDoubleSigmaGeneration) {
-		GeneticAlgo::initializeAlgoInput(0.5, 0.02, 10, 0);
+		GeneticAlgo::initializeAlgoInput(0.5, 0, 5, 0);
 		int precision = 64; // precision in bits
 		boost::dynamic_bitset<> sol(precision);
 		Individual::setSolution(sol);
-		int myPopulationSize = 50;
-		GeneticAlgo::minval = 0;
-		GeneticAlgo::maxval = 1;
+		int myPopulationSize = 20;
+		GeneticAlgo::setSystemDoubleConstraints(0.1, 0.3);
 		
 		Population* myPop = new Population(myPopulationSize);
 		int generationCount = 0;
@@ -179,9 +204,7 @@ public:
 		int f = myPop->getFittestForBS(md, dd).getFitnessForBSModel(md, dd);
 
 		while (myPop->getFittestForBS(md, dd).getFitnessForBSModel(md, dd) < precision) {
-			//fit.push_back(myPop->getFittest().getFitness());
 			generationCount = generationCount + 1;
-			//std::cout << "Generation: " << generationCount << " Fittest: " << myPop->getFittest().getFitness() << std::endl;
 			*myPop = GeneticAlgo::evolvePopulation(*myPop);
 		}
 		double gc = generationCount;

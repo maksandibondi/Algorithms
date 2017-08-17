@@ -94,11 +94,13 @@ namespace AlgoUtilities {
 		
 		static boost::dynamic_bitset<> convertDoubleTo64Bit(double value);
 		static boost::dynamic_bitset<> convertIntToBit(int value);
+		static boost::dynamic_bitset<> convertIntTo11Bit(int value);
 		static boost::dynamic_bitset<> convertFractionToBit(double value);
 		static boost::dynamic_bitset<> getExponentMantissaByNormalization(boost::dynamic_bitset<>bitIntegralPart, boost::dynamic_bitset<> bitFractionalPart, boost::dynamic_bitset<> &mantissa);
 		static int convertBitToInt(boost::dynamic_bitset<> value);
 		static double convertBitToFraction(boost::dynamic_bitset<> value);
 		static double convertBitToDouble(boost::dynamic_bitset<> value);
+		static std::vector<bool> convertBitsetToVector(boost::dynamic_bitset<> array);
 	};
 
 	static boost::dynamic_bitset<> BSSqrDiffBitwise(MarketData md, DealData dd);
