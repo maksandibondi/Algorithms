@@ -42,6 +42,7 @@ namespace AlgoUtilities {
 		boost::dynamic_bitset<> genes; // target variable binary expression
 		double target;
 		int fitness = 0;
+		double fitnessDouble = 0;
 	public:
 		Individual();
 		bool getGene(int index);
@@ -49,6 +50,7 @@ namespace AlgoUtilities {
 		void setGene(int index, bool value, bool &stateMin, bool &stateMax);
 		int getFitness();
 		int getFitnessForBSModel(MarketData md, DealData dd);
+		double getFitnessForBSModel2(MarketData md, DealData dd);
 		bool acceptGene(bool value, bool& stateMin, bool& stateMax, int index, bool isSign);
 		static void setSolution(boost::dynamic_bitset<> sol);
 		static int getPrecision();
@@ -64,6 +66,7 @@ namespace AlgoUtilities {
 		void setIndividual(int& index, Individual indiv);
 		Individual getFittest();
 		Individual getFittestForBS(MarketData md, DealData dd);
+		Individual getFittestForBS2(MarketData md, DealData dd);
 		void addAnIndividual(Individual indiv);
 		int size();
 	};

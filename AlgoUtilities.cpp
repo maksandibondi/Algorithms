@@ -49,6 +49,19 @@ namespace AlgoUtilities {
 		return fittest;
 	}
 
+	Individual Population::getFittestForBS2(MarketData md, DealData dd) {
+		Individual fittest = individuals[0];
+		// Loop through individuals to find fittest
+		int sz = individuals.size();
+		for (int i = 0; i < sz; i++) {
+
+			if (fittest.getFitnessForBSModel2(md, dd) <= getIndividual(i).getFitnessForBSModel2(md, dd)) {
+				fittest = getIndividual(i);
+			}
+		}
+		return fittest;
+	}
+
 	void Population::addAnIndividual(Individual indiv) {
 		individuals.push_back(indiv);
 	}
@@ -218,6 +231,16 @@ namespace AlgoUtilities {
 			}
 			this->fitness = fit;
 			return fit;
+	}
+	
+	double Individual::getFitnessForBSModel2(MarketData md, DealData dd) {
+		double fit = 0;
+		md.sigma = this->target;
+
+		fit = -abs(GeneticAlgo::convertBitToDouble(BSSqrDiffBitwise(md, dd)));
+			
+		this->fitnessDouble = fit;
+		return fit;
 	}
 
 	// solution and precision setter
@@ -633,16 +656,16 @@ namespace AlgoUtilities {
 
 	DealData::DealData() {
 		K = double(100);
-		//T = { 0.25, 0.5, 0.75, 1 , 1.25, 1.5};
-		T = { double(30) / double(365) };
+		T = { 0.25, 0.5, 0.75, 1 , 1.25, 1.5};
+		//T = { double(30) / double(365) };
 	}
 
 	MarketData::MarketData() {
 		S = double(98);
 		r = 0;
 		sigma = 0;
-		//prices = { 1.2, 1.5, 1.7, 1.72 , 1.725, 1.7256};
-		prices = { 2.2 };
+		prices = { 3.028106658, 4.637577325, 5.87854852, 6.92597496, 7.848844955, 8.682837246};
+		//prices = { 11.2 };
 	}
 
 

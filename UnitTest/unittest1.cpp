@@ -214,7 +214,32 @@ public:
 		//Assert::AreEqual(md.sigma, double(precision));
 	}
 	
+	TEST_METHOD(TestGeneticAlgoBS_WithDoubleSigmaGeneration2) {
+		GeneticAlgo::initializeAlgoInput(0.5, 0.00, 5, 0);
+		int precision = 64; // precision in bits
+		boost::dynamic_bitset<> sol(precision);
+		Individual::setSolution(sol);
+		int myPopulationSize = 20;
+		GeneticAlgo::setSystemDoubleConstraints(0, 1);
 
+		Population* myPop = new Population(myPopulationSize);
+		int generationCount = 0;
+		std::vector<int> fit;
+
+		DealData dd = DealData::DealData();
+		MarketData md = MarketData::MarketData();
+		double f = myPop->getFittestForBS2(md, dd).getFitnessForBSModel2(md, dd);
+
+		while (myPop->getFittestForBS2(md, dd).getFitnessForBSModel2(md, dd) < -0.001) {
+			generationCount = generationCount + 1;
+			*myPop = GeneticAlgo::evolvePopulation(*myPop);
+		}
+		double gc = generationCount;
+		double res = (myPop->getFittestForBS2(md, dd)).getTarget();
+		Assert::AreEqual(double(myPop->getFittestForBS2(md, dd).getFitnessForBSModel2(md, dd)), double(-0.001));
+
+		//Assert::AreEqual(md.sigma, double(precision));
+	}
 
 	};
 
