@@ -13,20 +13,21 @@ namespace UnitTest {
 	TEST_CLASS(UnitTest) {
 public:
 
+
 	TEST_METHOD(TestGeneticAlgoPOC) {
+		GeneticAlgo::initializeAlgoInput(0.5, 0.00, 5, 0);
 		int precision = 64;
 		boost::dynamic_bitset<> sol(precision);
 		Individual::setSolution(sol);
-		int myPopulationSize = 100;
+		int myPopulationSize = 20;
+		GeneticAlgo::setSystemDoubleConstraints(0, 1);
 
 		Population* myPop = new Population(myPopulationSize);
 		int generationCount = 0;
 		std::vector<int> fit;
 
 		while (myPop->getFittest().getFitness() < precision) {
-			//fit.push_back(myPop->getFittest().getFitness());
 			generationCount++;
-			//std::cout << "Generation: " << generationCount << " Fittest: " << myPop->getFittest().getFitness() << std::endl;
 			*myPop = GeneticAlgo::evolvePopulation(*myPop);
 		}
 
@@ -34,34 +35,7 @@ public:
 
 	}
 
-	// bs test
-	/*TEST_METHOD(TestMethod2) {
-		int precision = 64; // precision in bits
-		boost::dynamic_bitset<> sol(precision);
-		Individual::setSolution(sol);
-		int myPopulationSize = 100;
-		boost::dynamic_bitset<> valmin = GeneticAlgo::convertDoubleTo64Bit(0); // add the value of valmin, valmax from web or from algo of conversion
-		boost::dynamic_bitset<> valmax = GeneticAlgo::convertDoubleTo64Bit(2);
-
-		GeneticAlgo::setSystemConstraints(valmin, valmax);
-		Population* myPop = new Population(myPopulationSize, true);
-		int generationCount = 0;
-		std::vector<int> fit;
-
-		DealData dd = DealData::DealData();
-		MarketData md = MarketData::MarketData();
-
-		while (myPop->getFittestForBS(md,dd).getFitnessForBSModel(md,dd) < precision) {
-			//fit.push_back(myPop->getFittest().getFitness());
-			generationCount++;
-			//std::cout << "Generation: " << generationCount << " Fittest: " << myPop->getFittest().getFitness() << std::endl;
-			*myPop = GeneticAlgo::evolvePopulation(*myPop);
-		}
-
-		Assert::AreEqual(double(myPop->getFittestForBS(md, dd).getFitnessForBSModel(md, dd)), double(precision));
-		//Assert::AreEqual(md.sigma, double(precision));
-	}*/
-
+	// Conversion tests
 	TEST_METHOD(TestGeneticAlgoSettings) {
 
 		GeneticAlgo::initializeAlgoInput(0.5, 0.05, 5, 0);
@@ -137,8 +111,6 @@ public:
 		double value = GeneticAlgo::convertBitToFraction(testarray);
 	}
 
-
-	// to fix
 	TEST_METHOD(TestConversionBitToDouble) {
 		std::string str = std::string("0011111101010100100000000010100100000000010100100000000010100100");
 		std::reverse(str.begin(), str.end());
@@ -159,62 +131,11 @@ public:
 
 
 
+
+
+
 	// algos to test 
 	TEST_METHOD(TestGeneticAlgoBS) {
-		GeneticAlgo::initializeAlgoInput(0.5, 0.05, 5, 0);
-		int precision = 64; // precision in bits
-		boost::dynamic_bitset<> sol(precision);
-		Individual::setSolution(sol);
-		int myPopulationSize = 100;
-		boost::dynamic_bitset<> valmin = GeneticAlgo::convertDoubleTo64Bit(0); // add the value of valmin, valmax from web or from algo of conversion
-		boost::dynamic_bitset<> valmax = GeneticAlgo::convertDoubleTo64Bit(2.5);
-		GeneticAlgo::setSystemBinaryConstraints(valmin, valmax);
-		Population* myPop = new Population(myPopulationSize);
-		int generationCount = 0;
-		std::vector<int> fit;
-
-		DealData dd = DealData::DealData();
-		MarketData md = MarketData::MarketData();
-
-		while (myPop->getFittestForBS(md, dd).getFitnessForBSModel(md, dd) < precision) {
-			//fit.push_back(myPop->getFittest().getFitness());
-			generationCount++;
-			//std::cout << "Generation: " << generationCount << " Fittest: " << myPop->getFittest().getFitness() << std::endl;
-			*myPop = GeneticAlgo::evolvePopulation(*myPop);
-		}
-
-		Assert::AreEqual(double(myPop->getFittestForBS(md, dd).getFitnessForBSModel(md, dd)), double(precision));
-		//Assert::AreEqual(md.sigma, double(precision));
-	}
-
-	TEST_METHOD(TestGeneticAlgoBS_WithDoubleSigmaGeneration) {
-		GeneticAlgo::initializeAlgoInput(0.5, 0, 5, 0);
-		int precision = 64; // precision in bits
-		boost::dynamic_bitset<> sol(precision);
-		Individual::setSolution(sol);
-		int myPopulationSize = 20;
-		GeneticAlgo::setSystemDoubleConstraints(0.1, 0.3);
-		
-		Population* myPop = new Population(myPopulationSize);
-		int generationCount = 0;
-		std::vector<int> fit;
-
-		DealData dd = DealData::DealData();
-		MarketData md = MarketData::MarketData();
-		int f = myPop->getFittestForBS(md, dd).getFitnessForBSModel(md, dd);
-
-		while (myPop->getFittestForBS(md, dd).getFitnessForBSModel(md, dd) < precision) {
-			generationCount = generationCount + 1;
-			*myPop = GeneticAlgo::evolvePopulation(*myPop);
-		}
-		double gc = generationCount;
-		double res = (myPop->getFittestForBS(md, dd)).getTarget();
-		Assert::AreEqual(double(myPop->getFittestForBS(md, dd).getFitnessForBSModel(md, dd)), double(precision));
-		
-		//Assert::AreEqual(md.sigma, double(precision));
-	}
-	
-	TEST_METHOD(TestGeneticAlgoBS_WithDoubleSigmaGeneration2) {
 		GeneticAlgo::initializeAlgoInput(0.5, 0.00, 5, 0);
 		int precision = 64; // precision in bits
 		boost::dynamic_bitset<> sol(precision);
@@ -228,18 +149,20 @@ public:
 
 		DealData dd = DealData::DealData();
 		MarketData md = MarketData::MarketData();
-		double f = myPop->getFittestForBS2(md, dd).getFitnessForBSModel2(md, dd);
+		double f = myPop->getFittestForBS(md, dd).getFitnessForBSModel(md, dd);
 
-		while (myPop->getFittestForBS2(md, dd).getFitnessForBSModel2(md, dd) < -0.001) {
+		while (myPop->getFittestForBS(md, dd).getFitnessForBSModel(md, dd) < -0.0001) {
 			generationCount = generationCount + 1;
 			*myPop = GeneticAlgo::evolvePopulation(*myPop);
 		}
 		double gc = generationCount;
-		double res = (myPop->getFittestForBS2(md, dd)).getTarget();
-		Assert::AreEqual(double(myPop->getFittestForBS2(md, dd).getFitnessForBSModel2(md, dd)), double(-0.001));
+		double res = (myPop->getFittestForBS(md, dd)).getTarget();
+		Assert::AreEqual(double(myPop->getFittestForBS(md, dd).getFitnessForBSModel(md, dd)), double(-0.0001));
 
 		//Assert::AreEqual(md.sigma, double(precision));
 	}
+
+
 
 	};
 

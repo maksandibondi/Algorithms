@@ -49,19 +49,6 @@ namespace AlgoUtilities {
 		return fittest;
 	}
 
-	Individual Population::getFittestForBS2(MarketData md, DealData dd) {
-		Individual fittest = individuals[0];
-		// Loop through individuals to find fittest
-		int sz = individuals.size();
-		for (int i = 0; i < sz; i++) {
-
-			if (fittest.getFitnessForBSModel2(md, dd) <= getIndividual(i).getFitnessForBSModel2(md, dd)) {
-				fittest = getIndividual(i);
-			}
-		}
-		return fittest;
-	}
-
 	void Population::addAnIndividual(Individual indiv) {
 		individuals.push_back(indiv);
 	}
@@ -218,22 +205,7 @@ namespace AlgoUtilities {
 		return fit;
 	}
 
-	int Individual::getFitnessForBSModel(MarketData md, DealData dd) {
-		int fit = 0;
-		int sz = (this->genes).size();
-		md.sigma = this->target;
-
-			for (int i = 0; i < sz; i++) {
-
-				if (BSSqrDiffBitwise(md, dd)[i] == (solution[i])) { // compare i-th bit of sum of differences with its bit of solution
-					fit++;
-				}
-			}
-			this->fitness = fit;
-			return fit;
-	}
-	
-	double Individual::getFitnessForBSModel2(MarketData md, DealData dd) {
+	double Individual::getFitnessForBSModel(MarketData md, DealData dd) {
 		double fit = 0;
 		md.sigma = this->target;
 
@@ -348,6 +320,10 @@ namespace AlgoUtilities {
 		*fittest = tournament->getFittest();
 		return *fittest;
 	}
+
+
+
+
 
 	// initialize static algo input
 	void  GeneticAlgo::initializeAlgoInput(double uniformRate, double mutationRate, int tournamentSize, bool elitism) {
@@ -652,7 +628,7 @@ namespace AlgoUtilities {
 
 
 	
-
+	// Data
 
 	DealData::DealData() {
 		K = double(100);
@@ -670,6 +646,9 @@ namespace AlgoUtilities {
 
 
 	
+
+
+	// Financial module
 	
 	boost::dynamic_bitset<> BSSqrDiffBitwise(MarketData md, DealData dd) {
 		double S = md.S;
