@@ -136,7 +136,7 @@ public:
 
 	// algos to test 
 	TEST_METHOD(TestGeneticAlgoBS) {
-		GeneticAlgo::initializeAlgoInput(0.5, 0.00, 5, 0);
+		GeneticAlgo::initializeAlgoInput(0.5, 0.06, 5, 0);
 		int precision = 64; // precision in bits
 		boost::dynamic_bitset<> sol(precision);
 		Individual::setSolution(sol);

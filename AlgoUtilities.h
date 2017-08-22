@@ -17,6 +17,23 @@
 
 namespace AlgoUtilities {
 
+	static class D3DealData{
+	public:
+		int discretization_num_T;
+		int discretization_num_K;
+		D3DealData();
+		std::vector<double> T;
+		std::vector<double> K;
+	};
+
+	static class D3MarketData{
+	public:
+		D3MarketData();
+		double S;
+		double r;
+		std::vector<std::vector<double>> sigma;
+		std::vector<std::vector<double>>  prices;
+	};
 
 	static class DealData {
 	public:
@@ -107,6 +124,8 @@ namespace AlgoUtilities {
 	};
 
 	static boost::dynamic_bitset<> BSSqrDiffBitwise(MarketData md, DealData dd);
+
+	std::vector<std::vector<double>> FDMLocalVolpricer(D3MarketData md, D3DealData dd);
 
 	static double NormalCDFCody(double u);
 

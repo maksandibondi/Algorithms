@@ -1,19 +1,18 @@
 ﻿  unittest1.cpp
 c:\users\mbondare\downloads\fx adjoint\algorithms\algoutilities.h(27): warning C4091: 'static ': ignored on left of 'AlgoUtilities::DealData' when no variable is declared
 c:\users\mbondare\downloads\fx adjoint\algorithms\algoutilities.h(37): warning C4091: 'static ': ignored on left of 'AlgoUtilities::MarketData' when no variable is declared
-c:\users\mbondare\downloads\fx adjoint\algorithms\unittest\unittest1.cpp(82): warning C4267: 'initializing': conversion from 'size_t' to 'int', possible loss of data
-c:\users\mbondare\downloads\fx adjoint\algorithms\unittest\unittest1.cpp(93): warning C4267: 'initializing': conversion from 'size_t' to 'int', possible loss of data
-c:\users\mbondare\downloads\fx adjoint\algorithms\unittest\unittest1.cpp(104): warning C4267: 'initializing': conversion from 'size_t' to 'int', possible loss of data
-c:\users\mbondare\downloads\fx adjoint\algorithms\unittest\unittest1.cpp(117): warning C4267: 'initializing': conversion from 'size_t' to 'int', possible loss of data
-c:\users\mbondare\downloads\fx adjoint\algorithms\unittest\unittest1.cpp(131): warning C4267: 'initializing': conversion from 'size_t' to 'int', possible loss of data
-c:\users\mbondare\downloads\fx adjoint\algorithms\unittest\unittest1.cpp(231): warning C4244: 'initializing': conversion from 'double' to 'int', possible loss of data
+c:\users\mbondare\downloads\fx adjoint\algorithms\unittest\unittest1.cpp(56): warning C4267: 'initializing': conversion from 'size_t' to 'int', possible loss of data
+c:\users\mbondare\downloads\fx adjoint\algorithms\unittest\unittest1.cpp(67): warning C4267: 'initializing': conversion from 'size_t' to 'int', possible loss of data
+c:\users\mbondare\downloads\fx adjoint\algorithms\unittest\unittest1.cpp(78): warning C4267: 'initializing': conversion from 'size_t' to 'int', possible loss of data
+c:\users\mbondare\downloads\fx adjoint\algorithms\unittest\unittest1.cpp(91): warning C4267: 'initializing': conversion from 'size_t' to 'int', possible loss of data
+c:\users\mbondare\downloads\fx adjoint\algorithms\unittest\unittest1.cpp(105): warning C4267: 'initializing': conversion from 'size_t' to 'int', possible loss of data
 c:\users\mbondare\downloads\boost_1_64_0\boost_1_64_0\boost\dynamic_bitset\dynamic_bitset.hpp(298): warning C4267: 'argument': conversion from 'size_t' to 'unsigned long', possible loss of data
   c:\users\mbondare\downloads\boost_1_64_0\boost_1_64_0\boost\dynamic_bitset\dynamic_bitset.hpp(297): note: while compiling class template member function 'boost::dynamic_bitset<unsigned long,std::allocator<Block>>::reference boost::dynamic_bitset<Block,std::allocator<Block>>::operator [](boost::dynamic_bitset<Block,std::allocator<Block>>::size_type)'
           with
           [
               Block=unsigned long
           ]
-  c:\users\mbondare\downloads\fx adjoint\algorithms\unittest\unittest1.cpp(85): note: see reference to function template instantiation 'boost::dynamic_bitset<unsigned long,std::allocator<Block>>::reference boost::dynamic_bitset<Block,std::allocator<Block>>::operator [](boost::dynamic_bitset<Block,std::allocator<Block>>::size_type)' being compiled
+  c:\users\mbondare\downloads\fx adjoint\algorithms\unittest\unittest1.cpp(59): note: see reference to function template instantiation 'boost::dynamic_bitset<unsigned long,std::allocator<Block>>::reference boost::dynamic_bitset<Block,std::allocator<Block>>::operator [](boost::dynamic_bitset<Block,std::allocator<Block>>::size_type)' being compiled
           with
           [
               Block=unsigned long

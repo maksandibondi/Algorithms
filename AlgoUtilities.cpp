@@ -637,13 +637,28 @@ namespace AlgoUtilities {
 	}
 
 	MarketData::MarketData() {
-		S = double(98);
-		r = 0;
+		S = double(110);
+		r = 0.05;
 		sigma = 0;
-		prices = { 3.028106658, 4.637577325, 5.87854852, 6.92597496, 7.848844955, 8.682837246};
+		prices = { 11.98832952, 14.07538404, 15.94706732, 17.66295374, 19.26355258, 20.77444988};
 		//prices = { 11.2 };
 	}
 
+	D3DealData::D3DealData() {
+		int discretization_num_T = 16;
+		int discretization_num_K = 16;
+		K = {95, 98, 101, 104};
+		T = { 0.25, 0.5, 0.75, 1};
+		//T = { double(30) / double(365) };
+	}
+
+	D3MarketData::D3MarketData() {
+		S = double(110);
+		r = 0.05;
+		sigma = { { 0, 0, 0, 0 }, { 0, 0, 0, 0 }, { 0, 0, 0, 0 }, { 0, 0, 0, 0 } };
+		prices = { { 7.71436943, 18.12343211, 19.77587219, 21.34355787}, { 5.740060514, 15.64069661, 17.42982267, 19.0910727}, {4.111298367, 13.3226896, 15.2318196, 16.97210398},  };
+		//prices = { 11.2 };
+	}
 
 	
 
@@ -680,6 +695,28 @@ namespace AlgoUtilities {
 		return x;
 
 		
+	}
+
+	std::vector<std::vector<double>> FDMLocalVolpricer(D3MarketData md, D3DealData dd) {
+		// the prices returns sumOfDifference between market prices given by Local Vol model and prices obtained with given set of sigma for every T,K
+		int discretization_num_T = dd.discretization_num_T;
+		int discretization_num_K = dd.discretization_num_K;
+		double S = md.S;
+		double r = md.r;
+		std::vector<double> K = dd.K;
+		std::vector<std::vector<double>> sigma = md.sigma;
+		std::vector<double> T = dd.T;
+		double sumOfTheSqrDifference = 0;
+
+		int szK = K.size();
+		int szT = T.size();
+
+		for (int i = 0; i < discretization_num_T; i++) {
+			for (int j = 0; j < discretization_num_K; j++) {
+
+			}
+		}
+
 	}
 
 	double NormalCDFCody(double u) {
