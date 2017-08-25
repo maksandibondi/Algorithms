@@ -17,18 +17,30 @@
 
 namespace AlgoUtilities {
 
-	static class D3DealData{
+	static class Matrix {
+		size_t d1, d2;
+		std::vector<double> data; //linearazation vector for matrix
+	public:
+		Matrix(size_t d1, size_t d2);
+
+		// rechanrging of operator = is not necessary as next function will return a reference to the member that we wanna set
+
+		double & operator()(size_t i, size_t j);
+
+	};
+
+	static class DealData3D{
 	public:
 		int discretization_num_T;
 		int discretization_num_K;
-		D3DealData();
+		DealData3D();
 		std::vector<double> T;
 		std::vector<double> K;
 	};
 
-	static class D3MarketData{
+	static class MarketData3D{
 	public:
-		D3MarketData();
+		MarketData3D();
 		double S;
 		double r;
 		std::vector<std::vector<double>> sigma;
@@ -88,6 +100,39 @@ namespace AlgoUtilities {
 		int size();
 	};
 
+	class Individual3D {
+		static boost::dynamic_bitset<> solution;
+		static int precision;
+		boost::dynamic_bitset<> genes; // target variable binary expression
+		double target;
+		int fitness = 0;
+		double fitnessDouble = 0;
+	public:
+		Individual3D();
+		bool getGene(int index);
+		double getTarget();
+		void setGene(int index, bool value, bool &stateMin, bool &stateMax);
+		int getFitness();
+		//int getFitnessForBSModel(MarketData md, DealData dd);
+		double getFitnessForBSModel(MarketData md, DealData dd);
+		bool acceptGene(bool value, bool& stateMin, bool& stateMax, int index, bool isSign);
+		static void setSolution(boost::dynamic_bitset<> sol);
+		static int getPrecision();
+	};
+
+	class Population3D {
+		std::vector<Matrix> individuals;
+	public:
+		Population3D();
+		Population3D(int& size);
+		Individual& getIndividual(int& index);
+		void setIndividual(int& index, Individual indiv);
+		Individual getFittest();
+		Individual getFittestForBS(MarketData3D md, DealData3D dd);
+		void addAnIndividual(Individual indiv);
+		int size();
+	};
+
 	class GeneticAlgo {
 
 		static double uniformRate;
@@ -125,7 +170,7 @@ namespace AlgoUtilities {
 
 	static boost::dynamic_bitset<> BSSqrDiffBitwise(MarketData md, DealData dd);
 
-	std::vector<std::vector<double>> FDMLocalVolpricer(D3MarketData md, D3DealData dd);
+	std::vector<std::vector<double>> FDMLocalVolpricer(MarketData3D md, DealData3D dd);
 
 	static double NormalCDFCody(double u);
 

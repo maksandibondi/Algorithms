@@ -628,6 +628,18 @@ namespace AlgoUtilities {
 
 
 	
+	// Matrix definition
+
+	Matrix::Matrix(size_t d1, size_t d2) {
+			this->d1 = d1;
+			this->d2 = d2;
+			this->data.resize(d1*d2);
+		}
+
+	double & Matrix::operator()(size_t i, size_t j) {
+			return data[i*d1 + j];
+		}
+
 	// Data
 
 	DealData::DealData() {
@@ -644,7 +656,7 @@ namespace AlgoUtilities {
 		//prices = { 11.2 };
 	}
 
-	D3DealData::D3DealData() {
+	DealData3D::DealData3D() {
 		int discretization_num_T = 16;
 		int discretization_num_K = 16;
 		K = {95, 98, 101, 104};
@@ -652,7 +664,7 @@ namespace AlgoUtilities {
 		//T = { double(30) / double(365) };
 	}
 
-	D3MarketData::D3MarketData() {
+	MarketData3D::MarketData3D() {
 		S = double(110);
 		r = 0.05;
 		sigma = { { 0, 0, 0, 0 }, { 0, 0, 0, 0 }, { 0, 0, 0, 0 }, { 0, 0, 0, 0 } };
@@ -697,7 +709,7 @@ namespace AlgoUtilities {
 		
 	}
 
-	std::vector<std::vector<double>> FDMLocalVolpricer(D3MarketData md, D3DealData dd) {
+	std::vector<std::vector<double>> FDMLocalVolpricer(MarketData3D md, DealData3D dd) {
 		// the prices returns sumOfDifference between market prices given by Local Vol model and prices obtained with given set of sigma for every T,K
 		int discretization_num_T = dd.discretization_num_T;
 		int discretization_num_K = dd.discretization_num_K;
