@@ -1,26 +1,30 @@
-﻿  unittest1.cpp
-c:\users\mbondare\downloads\fx adjoint\algorithms\algoutilities.h(27): warning C4091: 'static ': ignored on left of 'AlgoUtilities::DealData' when no variable is declared
-c:\users\mbondare\downloads\fx adjoint\algorithms\algoutilities.h(37): warning C4091: 'static ': ignored on left of 'AlgoUtilities::MarketData' when no variable is declared
+﻿  stdafx.cpp
+  unittest1.cpp
+c:\users\mbondare\downloads\fx adjoint\algorithms\algoutilities.h(86): error C2955: 'std::vector': use of class template requires template argument list
+  c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\vector(700): note: see declaration of 'std::vector'
+  c:\users\mbondare\downloads\fx adjoint\algorithms\algoutilities.h(98): note: see reference to class template instantiation 'AlgoUtilities::Matrix<T>' being compiled
+c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\vector(698): error C2955: 'std::vector': use of class template requires template argument list
+  c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.10.25017\include\vector(700): note: see declaration of 'std::vector'
+c:\users\mbondare\downloads\fx adjoint\algorithms\algoutilities.h(107): warning C4091: 'static ': ignored on left of 'AlgoUtilities::DealData3D' when no variable is declared
+c:\users\mbondare\downloads\fx adjoint\algorithms\algoutilities.h(116): warning C4091: 'static ': ignored on left of 'AlgoUtilities::MarketData3D' when no variable is declared
+c:\users\mbondare\downloads\fx adjoint\algorithms\algoutilities.h(124): warning C4091: 'static ': ignored on left of 'AlgoUtilities::DealData' when no variable is declared
+c:\users\mbondare\downloads\fx adjoint\algorithms\algoutilities.h(134): warning C4091: 'static ': ignored on left of 'AlgoUtilities::MarketData' when no variable is declared
 c:\users\mbondare\downloads\fx adjoint\algorithms\unittest\unittest1.cpp(56): warning C4267: 'initializing': conversion from 'size_t' to 'int', possible loss of data
 c:\users\mbondare\downloads\fx adjoint\algorithms\unittest\unittest1.cpp(67): warning C4267: 'initializing': conversion from 'size_t' to 'int', possible loss of data
 c:\users\mbondare\downloads\fx adjoint\algorithms\unittest\unittest1.cpp(78): warning C4267: 'initializing': conversion from 'size_t' to 'int', possible loss of data
 c:\users\mbondare\downloads\fx adjoint\algorithms\unittest\unittest1.cpp(91): warning C4267: 'initializing': conversion from 'size_t' to 'int', possible loss of data
 c:\users\mbondare\downloads\fx adjoint\algorithms\unittest\unittest1.cpp(105): warning C4267: 'initializing': conversion from 'size_t' to 'int', possible loss of data
-c:\users\mbondare\downloads\boost_1_64_0\boost_1_64_0\boost\dynamic_bitset\dynamic_bitset.hpp(298): warning C4267: 'argument': conversion from 'size_t' to 'unsigned long', possible loss of data
-  c:\users\mbondare\downloads\boost_1_64_0\boost_1_64_0\boost\dynamic_bitset\dynamic_bitset.hpp(297): note: while compiling class template member function 'boost::dynamic_bitset<unsigned long,std::allocator<Block>>::reference boost::dynamic_bitset<Block,std::allocator<Block>>::operator [](boost::dynamic_bitset<Block,std::allocator<Block>>::size_type)'
-          with
-          [
-              Block=unsigned long
-          ]
-  c:\users\mbondare\downloads\fx adjoint\algorithms\unittest\unittest1.cpp(59): note: see reference to function template instantiation 'boost::dynamic_bitset<unsigned long,std::allocator<Block>>::reference boost::dynamic_bitset<Block,std::allocator<Block>>::operator [](boost::dynamic_bitset<Block,std::allocator<Block>>::size_type)' being compiled
-          with
-          [
-              Block=unsigned long
-          ]
-  c:\users\mbondare\downloads\fx adjoint\algorithms\algoutilities.h(42): note: see reference to class template instantiation 'boost::dynamic_bitset<unsigned long,std::allocator<Block>>' being compiled
-          with
-          [
-              Block=unsigned long
-          ]
-  UnitTest.vcxproj -> C:\Users\mbondare\Downloads\FX adjoint\Algorithms\x64\Debug\UnitTest.dll
-  UnitTest.vcxproj -> C:\Users\mbondare\Downloads\FX adjoint\Algorithms\x64\Debug\UnitTest.pdb (Partial PDB)
+c:\users\mbondare\downloads\fx adjoint\algorithms\unittest\unittest1.cpp(176): error C2228: left of '.size' must have class/struct/union
+  c:\users\mbondare\downloads\fx adjoint\algorithms\unittest\unittest1.cpp(176): note: type is 'double'
+c:\users\mbondare\downloads\fx adjoint\algorithms\unittest\unittest1.cpp(176): error C2661: 'AlgoUtilities::Population3D::Population3D': no overloaded function takes 2 arguments
+c:\users\mbondare\downloads\fx adjoint\algorithms\unittest\unittest1.cpp(182): error C2664: 'AlgoUtilities::Individual3D AlgoUtilities::Population3D::getFittestForBS(AlgoUtilities::MarketData3D,AlgoUtilities::DealData3D)': cannot convert argument 1 from 'AlgoUtilities::MarketData' to 'AlgoUtilities::MarketData3D'
+  c:\users\mbondare\downloads\fx adjoint\algorithms\unittest\unittest1.cpp(182): note: No user-defined-conversion operator available that can perform this conversion, or the operator cannot be called
+c:\users\mbondare\downloads\fx adjoint\algorithms\unittest\unittest1.cpp(182): error C2228: left of '.getFitnessForBSModel' must have class/struct/union
+c:\users\mbondare\downloads\fx adjoint\algorithms\unittest\unittest1.cpp(184): error C2664: 'AlgoUtilities::Population AlgoUtilities::GeneticAlgo::evolvePopulation(AlgoUtilities::Population)': cannot convert argument 1 from 'AlgoUtilities::Population3D' to 'AlgoUtilities::Population'
+  c:\users\mbondare\downloads\fx adjoint\algorithms\unittest\unittest1.cpp(184): note: No user-defined-conversion operator available that can perform this conversion, or the operator cannot be called
+c:\users\mbondare\downloads\fx adjoint\algorithms\unittest\unittest1.cpp(187): error C2664: 'AlgoUtilities::Individual3D AlgoUtilities::Population3D::getFittestForBS(AlgoUtilities::MarketData3D,AlgoUtilities::DealData3D)': cannot convert argument 1 from 'AlgoUtilities::MarketData' to 'AlgoUtilities::MarketData3D'
+  c:\users\mbondare\downloads\fx adjoint\algorithms\unittest\unittest1.cpp(187): note: No user-defined-conversion operator available that can perform this conversion, or the operator cannot be called
+c:\users\mbondare\downloads\fx adjoint\algorithms\unittest\unittest1.cpp(187): error C2228: left of '.getTarget' must have class/struct/union
+c:\users\mbondare\downloads\fx adjoint\algorithms\unittest\unittest1.cpp(188): error C2664: 'AlgoUtilities::Individual3D AlgoUtilities::Population3D::getFittestForBS(AlgoUtilities::MarketData3D,AlgoUtilities::DealData3D)': cannot convert argument 1 from 'AlgoUtilities::MarketData' to 'AlgoUtilities::MarketData3D'
+  c:\users\mbondare\downloads\fx adjoint\algorithms\unittest\unittest1.cpp(188): note: No user-defined-conversion operator available that can perform this conversion, or the operator cannot be called
+c:\users\mbondare\downloads\fx adjoint\algorithms\unittest\unittest1.cpp(188): error C2228: left of '.getFitnessForBSModel' must have class/struct/union

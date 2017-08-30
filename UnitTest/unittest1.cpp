@@ -149,7 +149,7 @@ public:
 
 		DealData dd = DealData::DealData();
 		MarketData md = MarketData::MarketData();
-		double f = myPop->getFittestForBS(md, dd).getFitnessForBSModel(md, dd);
+		//double f = myPop->getFittestForBS(md, dd).getFitnessForBSModel(md, dd);
 
 		while (myPop->getFittestForBS(md, dd).getFitnessForBSModel(md, dd) < -0.0001) {
 			generationCount = generationCount + 1;
@@ -162,7 +162,33 @@ public:
 		//Assert::AreEqual(md.sigma, double(precision));
 	}
 
+	// algos to test 
+	TEST_METHOD(TestGeneticAlgoBSLocalVol) {
+		GeneticAlgo::initializeAlgoInput(0.5, 0.06, 5, 0);
+		int precision = 64; // precision in bits
+		boost::dynamic_bitset<> sol(precision);
+		Individual::setSolution(sol);
+		int myPopulationSize = 20;
+		GeneticAlgo::setSystemDoubleConstraints(0, 1);
+		DealData dd = DealData::DealData();
+		MarketData md = MarketData::MarketData();
 
+		Population3D* myPop = new Population3D(myPopulationSize, dd.T.size(), dd.K.size());
+		int generationCount = 0;
+		std::vector<int> fit;
+
+		
+
+		while (myPop->getFittestForBS(md, dd).getFitnessForBSModel(md, dd) < -0.0001) {
+			generationCount = generationCount + 1;
+			*myPop = GeneticAlgo::evolvePopulation(*myPop);
+		}
+		double gc = generationCount;
+		double res = (myPop->getFittestForBS(md, dd)).getTarget();
+		Assert::AreEqual(double(myPop->getFittestForBS(md, dd).getFitnessForBSModel(md, dd)), double(-0.0001));
+
+		//Assert::AreEqual(md.sigma, double(precision));
+	}
 
 	};
 

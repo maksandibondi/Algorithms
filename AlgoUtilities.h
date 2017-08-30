@@ -16,16 +16,84 @@
 
 
 namespace AlgoUtilities {
-
-	static class Matrix {
+	
+	template <typename T>
+	class Matrix {
 		size_t d1, d2;
-		std::vector<double> data; //linearazation vector for matrix
+		std::vector<T> data; //linearazation vector for matrix
 	public:
-		Matrix(size_t d1, size_t d2);
+		Matrix(size_t d1, size_t d2) {
+			this->d1 = d1;
+			this->d2 = d2;
+			this->data.resize(d1*d2);
+		}
+
+		Matrix(size_t d1, size_t d2, T value) {
+			this->d1 = d1;
+			this->d2 = d2;
+			this->data.resize(d1*d2);
+			sz = data.size();
+			for (int i = 0; i < sz; i++) {
+				data[i] = value;
+			}
+		}
 
 		// rechanrging of operator = is not necessary as next function will return a reference to the member that we wanna set
 
-		double & operator()(size_t i, size_t j);
+		T & operator()(size_t i, size_t j) {
+			return data[i*d1 + j];
+		}
+
+		Matrix<T>* & operator-(Matrix<T>* a) {
+			sz = data.size();
+			for (i = 0; i < sz; i++) {
+				data[i] = data[i] - a.data[i];
+			}
+			return data;
+		}
+
+		Matrix<T>* & operator^(int power) {
+			sz = data.size();
+			for (i = 0; i < sz; i++) {
+				data[i] = pow(data[i],power);
+			}
+			return data;
+		}
+
+		double sumOfElements() {
+			double sum = 0;
+			sz = d1*d2;
+			for (int i = 0; i < sz; i++) {
+				sum += data[i];
+			}
+			return sum;
+		}
+
+		size_t size() {
+			return d1*d2;
+		}
+
+		size_t size(int dim) {
+			if (dim == 0) {
+				return d1;
+			}
+			else if (dim == 1) {
+				return d2;
+			}
+			
+		}
+
+		Matrix<T> vectorToMatrix(std::vector<std::vector(T)> vec) {
+			
+			sz1 = vec.size();
+			sz2 = vec[0].size();
+			Matrix<T> *matrix = new Matrix(sz1, sz2);
+			for (int i = 0; i < sz1; i++) {
+				for (int j = 0; j < sz2; j++) {
+					(*matrix)(i, j) = vec[i][j];
+				}
+			}
+		}
 
 	};
 
@@ -43,8 +111,8 @@ namespace AlgoUtilities {
 		MarketData3D();
 		double S;
 		double r;
-		std::vector<std::vector<double>> sigma;
-		std::vector<std::vector<double>>  prices;
+		Matrix<double> *sigma;
+		Matrix<double> *prices;
 	};
 
 	static class DealData {
@@ -83,7 +151,7 @@ namespace AlgoUtilities {
 		bool acceptGene(bool value, bool& stateMin, bool& stateMax, int index, bool isSign);
 		static void setSolution(boost::dynamic_bitset<> sol);
 		static int getPrecision();
-
+		friend class Individual3D;
 	};
 
 	class Population {
@@ -103,33 +171,37 @@ namespace AlgoUtilities {
 	class Individual3D {
 		static boost::dynamic_bitset<> solution;
 		static int precision;
-		boost::dynamic_bitset<> genes; // target variable binary expression
-		double target;
+		//Matrix <boost::dynamic_bitset<>> genes; // target variable binary expression
+		//Matrix<double> target;
+		Matrix<Individual> *indivs;
+		size_t d1 = 0;
+		size_t d2 = 0;
 		int fitness = 0;
 		double fitnessDouble = 0;
 	public:
 		Individual3D();
-		bool getGene(int index);
-		double getTarget();
-		void setGene(int index, bool value, bool &stateMin, bool &stateMax);
+		Individual3D(size_t d1, size_t d2);
+		bool getGene(size_t idx1, size_t idx2, int genIndex);
+		double getTarget(size_t idx1, size_t idx2);
+		Matrix<double>* Individual3D::getTargetMatrix();
+		//void setGene(size_t d1, size_t d2, int genIndex, bool value, bool &stateMin, bool &stateMax);
 		int getFitness();
 		//int getFitnessForBSModel(MarketData md, DealData dd);
-		double getFitnessForBSModel(MarketData md, DealData dd);
-		bool acceptGene(bool value, bool& stateMin, bool& stateMax, int index, bool isSign);
+		double getFitnessForBSModel(MarketData3D md, DealData3D dd);
 		static void setSolution(boost::dynamic_bitset<> sol);
 		static int getPrecision();
 	};
 
 	class Population3D {
-		std::vector<Matrix> individuals;
+		std::vector<Individual3D> individuals;
 	public:
 		Population3D();
-		Population3D(int& size);
-		Individual& getIndividual(int& index);
-		void setIndividual(int& index, Individual indiv);
-		Individual getFittest();
-		Individual getFittestForBS(MarketData3D md, DealData3D dd);
-		void addAnIndividual(Individual indiv);
+		Population3D(int& size, size_t d1, size_t d2);
+		Individual3D& getIndividual(int& index);
+		void setIndividual(int& index, Individual3D indiv);
+		Individual3D getFittest();
+		Individual3D getFittestForBS(MarketData3D md, DealData3D dd);
+		void addAnIndividual(Individual3D indiv);
 		int size();
 	};
 
@@ -170,7 +242,9 @@ namespace AlgoUtilities {
 
 	static boost::dynamic_bitset<> BSSqrDiffBitwise(MarketData md, DealData dd);
 
-	std::vector<std::vector<double>> FDMLocalVolpricer(MarketData3D md, DealData3D dd);
+	static boost::dynamic_bitset<> BSSqrDiffBitwise3D(MarketData3D md, DealData3D dd);
+
+	Matrix<double>* FDMLocalVolpricer(MarketData3D md, DealData3D dd);
 
 	static double NormalCDFCody(double u);
 
