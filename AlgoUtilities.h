@@ -32,9 +32,21 @@ namespace AlgoUtilities {
 			this->d1 = d1;
 			this->d2 = d2;
 			this->data.resize(d1*d2);
-			sz = data.size();
+			int sz = data.size();
 			for (int i = 0; i < sz; i++) {
 				data[i] = value;
+			}
+		}
+
+		Matrix(std::vector<std::vector<T>> vec) {
+			this->d1 = vec.size();
+			this->d2 = vec[0].size();
+			this->data.resize(d1*d2);
+			int sz = data.size();
+			for (int i = 0; i < d1; i++) {
+				for (int j = 0; j < d2; j++) {
+					data[i*d1 + j] = vec[i][j];
+				}
 			}
 		}
 
@@ -44,25 +56,62 @@ namespace AlgoUtilities {
 			return data[i*d1 + j];
 		}
 
-		Matrix<T>* & operator-(Matrix<T>* a) {
-			sz = data.size();
-			for (i = 0; i < sz; i++) {
-				data[i] = data[i] - a.data[i];
+		Matrix<T> operator+(Matrix<T>& a) {
+			size_t sz1 = this->d1;
+			size_t sz2 = this->d2;
+			Matrix<T> res = Matrix(d1, d2);
+
+			for (int i = 0; i < d1; i++) {
+				for (int j = 0; j < d2; j++) {
+					res(i, j) = data[i*d1 + j] + a(i, j);
+				}
 			}
-			return data;
+			return res;
 		}
 
-		Matrix<T>* & operator^(int power) {
-			sz = data.size();
-			for (i = 0; i < sz; i++) {
-				data[i] = pow(data[i],power);
+		Matrix<T> operator-(Matrix<T>& a) {
+			size_t sz1 = this->d1;
+			size_t sz2 = this->d2;
+			Matrix<T> res = Matrix(d1, d2);
+
+			for (int i = 0; i < d1; i++) {
+				for (int j = 0; j < d2; j++) {
+					res(i, j) = data[i*d1 + j] - a(i, j);
+				}
 			}
-			return data;
+			return res;
 		}
+
+		Matrix<T> operator^(int power) {
+			size_t sz1 = this->d1;
+			size_t sz2 = this->d2;
+			Matrix<T> res = Matrix(d1, d2);
+
+			for (int i = 0; i < d1; i++) {
+				for (int j = 0; j < d2; j++) {
+					res(i, j) = pow(data[i*d1 + j], 2);
+				}
+			}
+			return res;
+		}
+
+		// scalar product
+		/*Matrix<T> operator()(Matrix<T>& a) {
+			size_t sz1 = this->d1;
+			size_t sz2 = this->d2;
+			Matrix<T> res = Matrix(d1, d2);
+
+			for (int i = 0; i < d1; i++) {
+				for (int j = 0; j < d2; j++) {
+					res(i, j) = data[i*d1 + j] - a(i, j);
+				}
+			}
+			return res;
+		}*/
 
 		double sumOfElements() {
 			double sum = 0;
-			sz = d1*d2;
+			int sz = d1*d2;
 			for (int i = 0; i < sz; i++) {
 				sum += data[i];
 			}
@@ -82,19 +131,7 @@ namespace AlgoUtilities {
 			}
 			
 		}
-
-		Matrix<T> vectorToMatrix(std::vector<std::vector(T)> vec) {
-			
-			sz1 = vec.size();
-			sz2 = vec[0].size();
-			Matrix<T> *matrix = new Matrix(sz1, sz2);
-			for (int i = 0; i < sz1; i++) {
-				for (int j = 0; j < sz2; j++) {
-					(*matrix)(i, j) = vec[i][j];
-				}
-			}
-		}
-
+				
 	};
 
 	static class DealData3D{
@@ -160,7 +197,7 @@ namespace AlgoUtilities {
 		Population();
 		Population(int& size);
 		Individual& getIndividual(int& index);
-		void setIndividual(int& index, Individual indiv);
+		void setIndividual(int& index, Individual& indiv);
 		Individual getFittest();
 		Individual getFittestForBS(MarketData md, DealData dd);
 		//Individual getFittestForBS2(MarketData md, DealData dd);
@@ -171,38 +208,42 @@ namespace AlgoUtilities {
 	class Individual3D {
 		static boost::dynamic_bitset<> solution;
 		static int precision;
-		//Matrix <boost::dynamic_bitset<>> genes; // target variable binary expression
-		//Matrix<double> target;
 		Matrix<Individual> *indivs;
-		size_t d1 = 0;
-		size_t d2 = 0;
+		static size_t dim1;
+		static size_t dim2;
 		int fitness = 0;
 		double fitnessDouble = 0;
 	public:
 		Individual3D();
-		Individual3D(size_t d1, size_t d2);
 		bool getGene(size_t idx1, size_t idx2, int genIndex);
 		double getTarget(size_t idx1, size_t idx2);
-		Matrix<double>* Individual3D::getTargetMatrix();
+		Matrix<Individual>* getIndividualsMatrix();
+		Matrix<double>* getTargetMatrix();
 		//void setGene(size_t d1, size_t d2, int genIndex, bool value, bool &stateMin, bool &stateMax);
 		int getFitness();
 		//int getFitnessForBSModel(MarketData md, DealData dd);
 		double getFitnessForBSModel(MarketData3D md, DealData3D dd);
 		static void setSolution(boost::dynamic_bitset<> sol);
 		static int getPrecision();
+		static void setDimensionsOf3DIndividuals(size_t d1, size_t d2);
+
 	};
 
 	class Population3D {
 		std::vector<Individual3D> individuals;
 	public:
+		static size_t dim1; // dimension of Individual3D
+		static size_t dim2; // dimension of Individual3D
+
 		Population3D();
-		Population3D(int& size, size_t d1, size_t d2);
+		Population3D(int& size);
 		Individual3D& getIndividual(int& index);
 		void setIndividual(int& index, Individual3D indiv);
 		Individual3D getFittest();
 		Individual3D getFittestForBS(MarketData3D md, DealData3D dd);
 		void addAnIndividual(Individual3D indiv);
 		int size();
+		static void setDimensionsOf3DIndividuals(size_t d1, size_t d2);
 	};
 
 	class GeneticAlgo {
@@ -214,17 +255,23 @@ namespace AlgoUtilities {
 
 	public:
 
-		//GeneticAlgo();
-		//GeneticAlgo(double uniformRate, double mutationRate, int tournamentSize, bool elitism);
 		static boost::dynamic_bitset<> minset; // binary constraints for sigma
 		static boost::dynamic_bitset<> maxset; // binary constraints for sigma
 		static double minval; // double constraint for sigma
 		static double maxval; // double constraint for sigma
 
-		static Population evolvePopulation(Population pop);
-		static Individual tournamentSelection(Population pop);
-		static Individual crossover(Individual indiv1, Individual indiv2);
-		static void mutate(Individual indiv);
+		static Population* evolvePopulation(Population& pop);
+		static Individual* tournamentSelection(Population& pop);
+		static Individual* crossover(Individual& indiv1, Individual& indiv2);
+		static void mutate(Individual& indiv);
+
+		
+		static Population3D* evolvePopulation(Population3D& pop);
+		static Individual3D* tournamentSelection(Population3D& pop);
+		static Individual3D* crossover(Individual3D& indiv1, Individual3D& indiv2);
+		static void mutate(Individual3D& indiv);
+		
+
 		static void initializeAlgoInput(double uniformRate, double mutationRate, int tournamentSize, bool elitism);
 		static void setSystemBinaryConstraints(boost::dynamic_bitset<> valmin, boost::dynamic_bitset<> valmax);
 		static void setSystemDoubleConstraints(double valmin, double valmax);
