@@ -45,7 +45,7 @@ namespace AlgoUtilities {
 			int sz = data.size();
 			for (int i = 0; i < d1; i++) {
 				for (int j = 0; j < d2; j++) {
-					data[i*d1 + j] = vec[i][j];
+					data[i*d2 + j] = vec[i][j];
 				}
 			}
 		}
@@ -53,7 +53,7 @@ namespace AlgoUtilities {
 		// rechanrging of operator = is not necessary as next function will return a reference to the member that we wanna set
 
 		T & operator()(size_t i, size_t j) {
-			return data[i*d1 + j];
+			return data[i*d2 + j];
 		}
 
 		Matrix<T> operator+(Matrix<T>& a) {
@@ -63,7 +63,7 @@ namespace AlgoUtilities {
 
 			for (int i = 0; i < d1; i++) {
 				for (int j = 0; j < d2; j++) {
-					res(i, j) = data[i*d1 + j] + a(i, j);
+					res(i, j) = data[i*d2 + j] + a(i, j);
 				}
 			}
 			return res;
@@ -76,7 +76,7 @@ namespace AlgoUtilities {
 
 			for (int i = 0; i < d1; i++) {
 				for (int j = 0; j < d2; j++) {
-					res(i, j) = data[i*d1 + j] - a(i, j);
+					res(i, j) = data[i*d2 + j] - a(i, j);
 				}
 			}
 			return res;
@@ -89,7 +89,7 @@ namespace AlgoUtilities {
 
 			for (int i = 0; i < d1; i++) {
 				for (int j = 0; j < d2; j++) {
-					res(i, j) = pow(data[i*d1 + j], 2);
+					res(i, j) = pow(data[i*d2 + j], 2);
 				}
 			}
 			return res;
@@ -291,7 +291,11 @@ namespace AlgoUtilities {
 
 	static boost::dynamic_bitset<> BSSqrDiffBitwise3D(MarketData3D md, DealData3D dd);
 
+	double BSSqrDiff3D(MarketData3D md, DealData3D dd);
+
 	Matrix<double>* FDMLocalVolpricer(MarketData3D md, DealData3D dd);
+
+	Matrix<double>* BSPriceMatrixCreator(MarketData3D md, DealData3D dd);
 
 	static double NormalCDFCody(double u);
 

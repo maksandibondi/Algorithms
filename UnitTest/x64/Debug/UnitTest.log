@@ -40,5 +40,6 @@ c:\users\mbondare\downloads\fx adjoint\algorithms\algoutilities.h(45): warning C
               _Ty=double
           ]
 c:\users\mbondare\downloads\fx adjoint\algorithms\algoutilities.h(133): warning C4715: 'AlgoUtilities::Matrix<double>::size': not all control paths return a value
+     Creating library C:\Users\mbondare\Downloads\FX adjoint\Algorithms\x64\Debug\UnitTest.lib and object C:\Users\mbondare\Downloads\FX adjoint\Algorithms\x64\Debug\UnitTest.exp
   UnitTest.vcxproj -> C:\Users\mbondare\Downloads\FX adjoint\Algorithms\x64\Debug\UnitTest.dll
   UnitTest.vcxproj -> C:\Users\mbondare\Downloads\FX adjoint\Algorithms\x64\Debug\UnitTest.pdb (Partial PDB)

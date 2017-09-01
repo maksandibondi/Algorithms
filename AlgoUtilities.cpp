@@ -20,18 +20,26 @@ namespace AlgoUtilities {
 	}
 
 	DealData3D::DealData3D() {
-		discretization_num_T = 4;
-		discretization_num_K = 4;
-		K = { 95, 98, 101, 104 };
-		T = { 0.25, 0.5, 0.75, 1 };
+		discretization_num_T = 20;
+		discretization_num_K = 70;
+		
+		K = *(new std::vector<double>(70, 0));
+		for (int j = 1; j < 70; j++) {
+			K[j] = K[j - 1] + 3;
+		}
+
+		T = *(new std::vector<double>(20, 0));
+		for (int i = 1; i < 20; i++) {
+			T[i] = T[i - 1] + 0.05;
+		}
 		//T = { double(30) / double(365) };
 	}
 
 	MarketData3D::MarketData3D() {
 		S = double(110);
 		r = 0.05;
-		sigma = new Matrix<double>(4, 4, 0);
-		prices = new Matrix<double>({ { 16.42103483, 18.12343211, 19.77587219, 21.34355787 },{ 13.70691053, 15.64069661, 17.42982267, 19.0910727 },{ 11.16278434, 13.3226896, 15.2318196, 16.97210398 }, { 8.846112709, 11.19474524, 13.19631397, 14.99605698} });
+		sigma = nullptr; // new Matrix<double>(4, 5, 0);
+		prices = nullptr; //new Matrix<double>({ {8.133428294, 6.194460012, 4.571019117, 3.265104769, 2.256690667},{ 10.53118471, 8.685045271, 7.06117636, 5.65952825, 4.472227255},{ 12.55583683, 10.75226442, 9.12811083, 7.68294186, 6.412109843}, { 14.37034509, 12.5944325, 10.9718374, 9.502020105, 8.181743876} });
 		//prices = { 11.2 };
 	}
 
@@ -377,7 +385,8 @@ namespace AlgoUtilities {
 		double fit = 0;
 		md.sigma = this->getTargetMatrix(); // setting value of sigma to market data to calculate differences
 
-		fit = -abs(GeneticAlgo::convertBitToDouble(BSSqrDiffBitwise3D(md, dd))); // we expect fitness to be as close as possible to zero
+		fit = -abs(BSSqrDiff3D(md, dd));
+		//fit = -abs(GeneticAlgo::convertBitToDouble(BSSqrDiffBitwise3D(md, dd))); // we expect fitness to be as close as possible to zero
 
 		this->fitnessDouble = fit;
 		return fit;
@@ -961,6 +970,16 @@ namespace AlgoUtilities {
 		
 	}
 
+	double BSSqrDiff3D(MarketData3D md, DealData3D dd) {
+
+		Matrix<double>* price = FDMLocalVolpricer(md, dd);
+
+		double sumOfTheSqrDifference = ((*price - *(md.prices)) ^ 2).sumOfElements();
+
+		return sumOfTheSqrDifference;
+
+	}
+
 	Matrix<double>* FDMLocalVolpricer(MarketData3D md, DealData3D dd) {
 		
 		int discretization_num_T = dd.discretization_num_T; //will be the same as size of K,T not to interpolate in the beginning
@@ -971,15 +990,23 @@ namespace AlgoUtilities {
 		std::vector<double> T = dd.T;
 		Matrix<double>* sigma = md.sigma;
 		double sumOfTheSqrDifference = 0;
-		double delta_T = (T[discretization_num_T-1] - T[0]) / discretization_num_T;
-		double delta_K = (K[discretization_num_K-1] - K[0]) / discretization_num_K;
+		double delta_T = (T[discretization_num_T-1] - T[0]) / (discretization_num_T-1);
+		double delta_K = (K[discretization_num_K-1] - K[0]) / (discretization_num_K-1);
 		
-		Matrix<double>* u = new Matrix<double>(discretization_num_T, discretization_num_T);
-		// setting initial condition
+		Matrix<double>* u = new Matrix<double>(discretization_num_T, discretization_num_K);
+		// setting initial condition at T = t0
 		for (int j = 0; j < discretization_num_K; j++) {
-			(*u)(0, j) = std::max(S - K[j], double(0));
+			(*u)(0, j) = std::max(S - exp(-r*T[0])*K[j], double(0));
 		}
 
+		// setting boundary conditions for K = K0; K = end; 
+		//if K>>S0 -> u(:,K) -> 0     if K<<S0 -> u(T(i),K) -> S0-K*exp(-r*T(i)) for all i
+		for (int i = 0; i < discretization_num_T; i++) {
+			(*u)(i, 0) = S - K[0] * exp(-r*T[i]); // Dirichlet boundary Call
+			(*u)(i, discretization_num_K - 1) = 0; // Dirichlet boundary Call
+		}
+
+		// Solution of PDE
 		for (int i = 0; i < discretization_num_T-1; i++) {
 			for (int j = 1; j < discretization_num_K-1; j++) {
 				(*u)(i + 1, j) = (*u)(i, j) + 0.5*pow((*sigma)(i, j),2)*(pow(K[i],2))*((*u)(i, j + 1) + (*u)(i, j - 1) - 2 * ((*u)(i, j)))*delta_T / (pow(delta_K, 2)) - r*K[i] * ((*u)(i, j + 1) - (*u)(i, j))*delta_T / delta_K;
@@ -987,6 +1014,40 @@ namespace AlgoUtilities {
 		}
 
 		return u;
+
+	}
+
+	Matrix<double>* BSPriceMatrixCreator(MarketData3D md, DealData3D dd) {
+		double S = md.S;
+		double r = md.r;
+		std::vector<double> K = dd.K;
+		std::vector<double> T = dd.T;
+		
+
+		int sz1 = T.size();
+		int sz2 = K.size();
+		Matrix<double>* sigma = new Matrix<double>(sz1, sz2, 0.2);
+		Matrix<double>* prices = new Matrix<double>(sz1, sz2);
+
+		for (int i = 0; i < sz1; i++) {
+
+			for (int j = 0; j < sz2; j++) {
+				
+				double d1 = (1 / ((*sigma)(i,j) * sqrt(T[i])))*(log(S / K[j]) + (r + pow((*sigma)(i,j), 2) / 2)*T[i]);
+				//cout << "d1 = " << d1.getValue() << endl;
+
+				double d2 = d1 - (*sigma)(i,j) * sqrt(T[i]);
+				//cout << "d2 = " << d2.getValue() << endl;
+
+				double price = (NormalCDFCody(d1)*S) - (NormalCDFCody(d2)*K[j]*exp(-r*T[i]));
+
+				(*prices)(i, j) = price;
+
+			}
+
+		}
+
+		return prices;
 
 	}
 

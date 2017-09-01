@@ -207,10 +207,11 @@ public:
 		boost::dynamic_bitset<> sol(precision);
 		Individual::setSolution(sol);
 		int myPopulationSize = 20;
-		GeneticAlgo::setSystemDoubleConstraints(0.1999, 0.20111);
+		GeneticAlgo::setSystemDoubleConstraints(0.19, 0.21);
 
 		DealData3D dd = DealData3D::DealData3D();
 		MarketData3D md = MarketData3D::MarketData3D();
+		md.prices = BSPriceMatrixCreator(md, dd); // CREATING THE MATRIX OF MARKET PRICES FORM MARKET DATA
 		size_t sz1 = md.prices->size(0);
 		size_t sz2 = md.prices->size(1);
 		Population3D::setDimensionsOf3DIndividuals(md.prices->size(0), md.prices->size(1));
@@ -219,7 +220,7 @@ public:
 		
 		int generationCount = 0;
 
-		while (myPop->getFittestForBS(md, dd).getFitnessForBSModel(md, dd) < 16) {
+		while (myPop->getFittestForBS(md, dd).getFitnessForBSModel(md, dd) < -100) {
 			generationCount = generationCount + 1;
 			myPop = GeneticAlgo::evolvePopulation(*myPop);
 		}
