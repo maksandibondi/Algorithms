@@ -21,15 +21,15 @@ namespace AlgoUtilities {
 
 	DealData3D::DealData3D() {
 		discretization_num_T = 20;
-		discretization_num_K = 70;
+		discretization_num_K = 40;
 		
-		K = *(new std::vector<double>(70, 0));
-		for (int j = 1; j < 70; j++) {
-			K[j] = K[j - 1] + 3;
+		K = *(new std::vector<double>(discretization_num_K, 0));
+		for (int j = 1; j < discretization_num_K; j++) {
+			K[j] = K[j - 1] + 5;
 		}
 
-		T = *(new std::vector<double>(20, 0));
-		for (int i = 1; i < 20; i++) {
+		T = *(new std::vector<double>(discretization_num_T, 0));
+		for (int i = 1; i < discretization_num_T; i++) {
 			T[i] = T[i - 1] + 0.05;
 		}
 		//T = { double(30) / double(365) };
@@ -37,7 +37,7 @@ namespace AlgoUtilities {
 
 	MarketData3D::MarketData3D() {
 		S = double(110);
-		r = 0.05;
+		r = 0.00;
 		sigma = nullptr; // new Matrix<double>(4, 5, 0);
 		prices = nullptr; //new Matrix<double>({ {8.133428294, 6.194460012, 4.571019117, 3.265104769, 2.256690667},{ 10.53118471, 8.685045271, 7.06117636, 5.65952825, 4.472227255},{ 12.55583683, 10.75226442, 9.12811083, 7.68294186, 6.412109843}, { 14.37034509, 12.5944325, 10.9718374, 9.502020105, 8.181743876} });
 		//prices = { 11.2 };
@@ -107,53 +107,53 @@ namespace AlgoUtilities {
 	Population3D::Population3D() {}
 
 	Population3D::Population3D(int& size) {
+		individuals = new std::vector<Individual3D*>();
 		for (int i = 0; i < size; i++) {
 			Individual3D* newIndividual = new Individual3D();
-			individuals.push_back(*newIndividual);
-			delete newIndividual;
+			individuals->push_back(newIndividual);
 		}
 	}
 
-	Individual3D& Population3D::getIndividual(int& index) {
-		return individuals[index];
+	Individual3D* Population3D::getIndividual(int& index) {
+		return (*individuals)[index];
 	}
 
-	void Population3D::setIndividual(int& index, Individual3D indiv) {
-		individuals[index] = indiv;
+	void Population3D::setIndividual(int& index, Individual3D* indiv) {
+		(*individuals)[index] = indiv;
 	}
 
-	Individual3D Population3D::getFittest() {
-		Individual3D fittest = individuals[0];
+	Individual3D* Population3D::getFittest() {
+		Individual3D* fittest = (*individuals)[0];
 		// Loop through individuals to find fittest
-		int sz = individuals.size();
+		int sz = individuals->size();
 		for (int i = 0; i < sz; i++) {
 
-			if (fittest.getFitness() <= getIndividual(i).getFitness()) {
+			if (fittest->getFitness() <= getIndividual(i)->getFitness()) {
 				fittest = getIndividual(i);
 			}
 		}
 		return fittest;
 	}
 
-	Individual3D Population3D::getFittestForBS(MarketData3D md, DealData3D dd) {
-		Individual3D fittest = individuals[0];
+	Individual3D* Population3D::getFittestForBS(MarketData3D* md, DealData3D* dd) {
+		Individual3D* fittest = (*individuals)[0];
 		// Loop through individuals to find fittest
-		int sz = individuals.size();
+		int sz = individuals->size();
 		for (int i = 0; i < sz; i++) {
 
-			if (fittest.getFitnessForBSModel(md, dd) <= getIndividual(i).getFitnessForBSModel(md, dd)) {
+			if (fittest->getFitnessForBSModel(md, dd) <= getIndividual(i)->getFitnessForBSModel(md, dd)) {
 				fittest = getIndividual(i);
 			}
 		}
 		return fittest;
 	}
 
-	void Population3D::addAnIndividual(Individual3D indiv) {
-		individuals.push_back(indiv);
+	void Population3D::addAnIndividual(Individual3D* indiv) {
+		individuals->push_back(indiv);
 	}
 
 	int Population3D::size() {
-		int sz = individuals.size();
+		int sz = individuals->size();
 		return sz;
 	}
 
@@ -180,16 +180,16 @@ namespace AlgoUtilities {
 			setGene(i, binarySigma[i], stateMin, stateMax);
 		}
 
-		std::vector<double> checkbin(64, 0);
+		/*std::vector<double> checkbin(64, 0);
 		std::vector<double> checkgenes(64, 0);
 		for (int i = 0; i < 64; i++) {
 
 			checkbin[i] = binarySigma[i]; // binary sigma is well calculated
 			checkgenes[i] = genes[i]; // genes acception algo is not working well
-		}
+		}*/
 
-		double val = GeneticAlgo::convertBitToDouble(genes);
-		double x = val;
+		/*double val = GeneticAlgo::convertBitToDouble(genes);
+		double x = val;*/
 	}
 
 	bool Individual::getGene(int index) {
@@ -325,20 +325,25 @@ namespace AlgoUtilities {
 
 
 	Individual3D::Individual3D() {
-		this->indivs = new Matrix<Individual>(dim1, dim2);
+		this->indivs = new Matrix<Individual*>(dim1, dim2);
+		for (int i = 0; i < dim1; i++) {
+			for (int j = 0; j < dim2; j++) {
+				(*indivs)(i, j) = new Individual();
+			}
+		}
 	}
 
 	bool Individual3D::getGene(size_t idx1, size_t idx2, int genIndex) {
-		bool gene = (*indivs)(idx1, idx2).getGene(genIndex); //(bool)genes[index];
+		bool gene = (*indivs)(idx1, idx2)->getGene(genIndex); //(bool)genes[index];
 		return gene;
 	}
 
-	Matrix<Individual>* Individual3D::getIndividualsMatrix() {
+	Matrix<Individual*>* Individual3D::getIndividualsMatrix() {
 		return this->indivs;
 	}
 
 	double Individual3D::getTarget(size_t idx1, size_t idx2) {
-		return (*indivs)(idx1, idx2).getTarget();
+		return (*indivs)(idx1, idx2)->getTarget();
 	}
 
 	Matrix<double>* Individual3D::getTargetMatrix() {
@@ -371,7 +376,7 @@ namespace AlgoUtilities {
 		for (int i = 0; i < sz; i++) {
 			for (int j = 0; j < sz2; j++) {
 				for (int g = 0; g < precision; g++) {
-					if (((*indivs)(i, j)).genes[g] == (solution[i])) {
+					if (((*indivs)(i, j))->genes[g] == (solution[i])) {
 						fit++;
 					}
 				}
@@ -381,9 +386,9 @@ namespace AlgoUtilities {
 		return fit;
 	}
 
-	double Individual3D::getFitnessForBSModel(MarketData3D md, DealData3D dd) {
+	double Individual3D::getFitnessForBSModel(MarketData3D* md, DealData3D* dd) {
 		double fit = 0;
-		md.sigma = this->getTargetMatrix(); // setting value of sigma to market data to calculate differences
+		md->sigma = this->getTargetMatrix(); // setting value of sigma to market data to calculate differences
 
 		fit = -abs(BSSqrDiff3D(md, dd));
 		//fit = -abs(GeneticAlgo::convertBitToDouble(BSSqrDiffBitwise3D(md, dd))); // we expect fitness to be as close as possible to zero
@@ -508,21 +513,21 @@ namespace AlgoUtilities {
 
 	
 	
-	Population3D* GeneticAlgo::evolvePopulation(Population3D& pop) {
-		int size = pop.size();
+	Population3D* GeneticAlgo::evolvePopulation(Population3D* pop) {
+		int size = pop->size();
 		
 		Population3D* newPopulation = new Population3D(size);
 		// Keep the best individual
 		if (elitism) {
-			newPopulation->addAnIndividual(pop.getFittest());
+			newPopulation->addAnIndividual(pop->getFittest());
 		}
 
 		// add the new individuals to newPopulation individuals vector
 		for (int i = 0; i < size - elitism; i++) {
 			Individual3D* indiv1 = tournamentSelection(pop);
 			Individual3D* indiv2 = tournamentSelection(pop);
-			Individual3D* newIndiv = crossover(*indiv1, *indiv2);
-			newPopulation->setIndividual(i, *newIndiv);
+			Individual3D* newIndiv = crossover(indiv1, indiv2);
+			newPopulation->setIndividual(i, newIndiv);
 		}
 
 		// Mutate population
@@ -534,12 +539,12 @@ namespace AlgoUtilities {
 	}
 
 	// returns a value of new daughter individual
-	Individual3D* GeneticAlgo::crossover(Individual3D& indiv1, Individual3D& indiv2) {
+	Individual3D* GeneticAlgo::crossover(Individual3D* indiv1, Individual3D* indiv2) {
 		Individual3D* newSol = new Individual3D();
 		int precision = Individual3D::getPrecision();
-		Matrix<Individual>* indivs1D_1 = indiv1.getIndividualsMatrix();
-		Matrix<Individual>* indivs1D_2 = indiv2.getIndividualsMatrix();
-		Matrix<Individual>* indivs1D_newSol = newSol->getIndividualsMatrix();
+		Matrix<Individual*>* indivs1D_1 = indiv1->getIndividualsMatrix();
+		Matrix<Individual*>* indivs1D_2 = indiv2->getIndividualsMatrix();
+		Matrix<Individual*>* indivs1D_newSol = newSol->getIndividualsMatrix();
 		size_t sz1 = Population3D::dim1;
 		size_t sz2 = Population3D::dim2;
 
@@ -550,18 +555,18 @@ namespace AlgoUtilities {
 				// Loop through genes
 				bool stateMin = false; // initial state for constraints
 				bool stateMax = false; // initial state for constraints
-				Individual currentIndNewSol = (*indivs1D_newSol)(k, j);
-				Individual currentInd1 = (*indivs1D_1)(k, j);
-				Individual currentInd2 = (*indivs1D_2)(k, j);
+				Individual* currentIndNewSol = (*indivs1D_newSol)(k, j);
+				Individual* currentInd1 = (*indivs1D_1)(k, j);
+				Individual* currentInd2 = (*indivs1D_2)(k, j);
 
 
 				for (int i = 0; i < precision; i++) {
 					// Crossover
 					if ((double)rand() / (double)RAND_MAX <= uniformRate) {
-						currentIndNewSol.setGene(i, currentInd1.getGene(i), stateMin, stateMax);
+						currentIndNewSol->setGene(i, currentInd1->getGene(i), stateMin, stateMax);
 					}
 					else {
-						currentIndNewSol.setGene(i, currentInd2.getGene(i), stateMin, stateMax);
+						currentIndNewSol->setGene(i, currentInd2->getGene(i), stateMin, stateMax);
 					}
 				}
 
@@ -572,9 +577,9 @@ namespace AlgoUtilities {
 	}
 
 	// Mutate an individual (changes the genes inside an individual
-	void GeneticAlgo::mutate(Individual3D& indiv) {
+	void GeneticAlgo::mutate(Individual3D* indiv) {
 		int precision = Individual3D::getPrecision();
-		Matrix<Individual>* indivs1D = indiv.getIndividualsMatrix();
+		Matrix<Individual*>* indivs1D = indiv->getIndividualsMatrix();
 		size_t sz1 = Population3D::dim1;
 		size_t sz2 = Population3D::dim2;
 
@@ -583,13 +588,13 @@ namespace AlgoUtilities {
 				// Loop through genes
 				bool stateMin = false; // initial state for constraints
 				bool stateMax = false; // initial state for constraints
-				Individual currentInd = (*indivs1D)(k, j);
+				Individual* currentInd = (*indivs1D)(k, j);
 
 				for (int i = 0; i < precision; i++) {
 					if ((double)rand() / (double)RAND_MAX <= mutationRate) {
 						// Create random gene
 						bool gene = (bool)round((double)rand() / (double)RAND_MAX);
-						currentInd.setGene(i, gene, stateMin, stateMax);
+						currentInd->setGene(i, gene, stateMin, stateMax);
 					}
 				}
 			}
@@ -598,18 +603,18 @@ namespace AlgoUtilities {
 	}
 
 	// takes some random individuals from population and chooses the fittest
-	Individual3D* GeneticAlgo::tournamentSelection(Population3D& pop) {
+	Individual3D* GeneticAlgo::tournamentSelection(Population3D* pop) {
 		Individual3D* fittest = new Individual3D();
-		int sz = pop.size();
+		int sz = pop->size();
 		// Create a tournament population
 		Population3D* tournament = new Population3D(tournamentSize);
 		// For each place in the tournament get a random individual
 		for (int i = 0; i < tournamentSize; i++) {
 			int randomId = (int)(((double)rand() / (double)RAND_MAX) * (sz - 1));
-			tournament->setIndividual(i, pop.getIndividual(randomId));
+			tournament->setIndividual(i, pop->getIndividual(randomId));
 		}
 		// Get the fittest
-		*fittest = tournament->getFittest();
+		fittest = tournament->getFittest();
 		return fittest;
 	}
 
@@ -956,11 +961,11 @@ namespace AlgoUtilities {
 		
 	}
 
-	boost::dynamic_bitset<> BSSqrDiffBitwise3D(MarketData3D md, DealData3D dd) {
+	boost::dynamic_bitset<> BSSqrDiffBitwise3D(MarketData3D* md, DealData3D* dd) {
 
 		Matrix<double>* price = FDMLocalVolpricer(md, dd);
 
-		double sumOfTheSqrDifference = ((*price - *(md.prices))^2).sumOfElements();
+		double sumOfTheSqrDifference = ((*price - *(md->prices))^2).sumOfElements();
 	
 		boost::dynamic_bitset<> x = GeneticAlgo::convertDoubleTo64Bit(sumOfTheSqrDifference);
 
@@ -970,25 +975,87 @@ namespace AlgoUtilities {
 		
 	}
 
-	double BSSqrDiff3D(MarketData3D md, DealData3D dd) {
+	double BSSqrDiff3D(MarketData3D* md, DealData3D* dd) {
 
 		Matrix<double>* price = FDMLocalVolpricer(md, dd);
 
-		double sumOfTheSqrDifference = ((*price - *(md.prices)) ^ 2).sumOfElements();
+		double sumOfTheSqrDifference = ((*price - *(md->prices)) ^ 2).sumOfElements();
 
 		return sumOfTheSqrDifference;
 
 	}
 
-	Matrix<double>* FDMLocalVolpricer(MarketData3D md, DealData3D dd) {
+
+
+	// Matrix fill and theta-schema utilities
+	std::vector<double>* thomasAlgo(Matrix<double>& A, Matrix<double>& B) {
+		int szRow = A.size(0);
+
+		std::vector<double>* res = new std::vector<double>(szRow, 0);
+		std::vector<double>* c = new std::vector<double>(szRow, 0);
+		std::vector<double>* d = new std::vector<double>(szRow, 0);
+
+		(*c)[0] = A(0, 1) / A(0, 0);
+		(*d)[0] = B(0, 0) / A(0, 0);
+
+		// forward walk: looking for transformed A matrix members
+		for (int i = 1; i < szRow-1; i++) {
+			(*c)[i] = A(i, i + 1) / (A(i, i) - (*c)[i - 1] * A(i, i - 1));
+			(*d)[i] = (B(0, i) - (*d)[i - 1] * A(i, i - 1)) / (A(i, i) - (*c)[i - 1] * A(i, i - 1));
+		}
+		(*d)[szRow - 1] = (B(0, szRow - 1) - (*d)[szRow - 2] * A(szRow - 1, szRow - 2)) / (A(szRow - 1, szRow - 1) - (*c)[szRow - 2] * A(szRow - 1, szRow - 2));
 		
-		int discretization_num_T = dd.discretization_num_T; //will be the same as size of K,T not to interpolate in the beginning
-		int discretization_num_K = dd.discretization_num_K;
-		double S = md.S;
-		double r = md.r;
-		std::vector<double> K = dd.K;
-		std::vector<double> T = dd.T;
-		Matrix<double>* sigma = md.sigma;
+		// backward walk: finding the solutions
+		(*res)[szRow - 1] = (*d)[szRow - 1];
+		for (int i = szRow - 1; i > 0; i--) {
+			(*res)[i - 1] = (*d)[i - 1] - (*res)[i] * (*c)[i-1];
+		}
+
+		delete c, d;
+		return res;
+
+	}
+
+	Matrix<double>* createATriagonalMatrix(Matrix<double>* alpha, Matrix<double>* beta, Matrix<double>* gamma, int timeIndex) {
+		int sz = alpha->size(1);
+		Matrix<double>* triagonal = new Matrix<double>(sz, sz, 0);
+
+		(*triagonal)(0, 0) = (*beta)(timeIndex, 0);
+		(*triagonal)(0, 1) = (*gamma)(timeIndex, 0);
+		(*triagonal)(sz - 1, sz - 1) = (*beta)(timeIndex, sz - 1);
+		(*triagonal)(sz - 1, sz - 2) = (*alpha)(timeIndex, sz - 1);
+
+		for (int i = 1; i < sz - 1; i++) {
+			(*triagonal)(i, i) = (*beta)(timeIndex, i);
+			(*triagonal)(i, i - 1) = (*alpha)(timeIndex, i);
+			(*triagonal)(i, i + 1) = (*gamma)(timeIndex, i);
+		}
+
+		return triagonal;
+
+	}
+
+	void fillAlphaBetaGammaFromSigmaDeltaT(Matrix<double>* alpha, Matrix<double>* beta, Matrix<double>* gamma, Matrix<double>* sigma, double r, double delta_T) {
+
+		*alpha = ((*sigma)^2)*(-1 / (2*pow(delta_T, 2)) - 1 / (4 * delta_T)) - r / (2 * delta_T);
+
+		*beta = ((*sigma)^2) / (delta_T*delta_T);
+
+		*gamma = ((*sigma)^2)*(-1 / (2*pow(delta_T, 2)) + 1 / (4 * delta_T)) + r / (2 * delta_T);
+	}
+
+
+	// Pricers
+
+	Matrix<double>* FDMLocalVolpricer(MarketData3D* md, DealData3D* dd) {
+		
+		int discretization_num_T = dd->discretization_num_T; //will be the same as size of K,T not to interpolate in the beginning
+		int discretization_num_K = dd->discretization_num_K;
+		double S = md->S;
+		double r = md->r;
+		std::vector<double> K = dd->K;
+		std::vector<double> T = dd->T;
+		Matrix<double>* sigma = md->sigma;
 		double sumOfTheSqrDifference = 0;
 		double delta_T = (T[discretization_num_T-1] - T[0]) / (discretization_num_T-1);
 		double delta_K = (K[discretization_num_K-1] - K[0]) / (discretization_num_K-1);
@@ -1002,7 +1069,7 @@ namespace AlgoUtilities {
 		// setting boundary conditions for K = K0; K = end; 
 		//if K>>S0 -> u(:,K) -> 0     if K<<S0 -> u(T(i),K) -> S0-K*exp(-r*T(i)) for all i
 		for (int i = 0; i < discretization_num_T; i++) {
-			(*u)(i, 0) = S - K[0] * exp(-r*T[i]); // Dirichlet boundary Call
+			(*u)(i, 0) = S - K[0]; // Dirichlet boundary Call
 			(*u)(i, discretization_num_K - 1) = 0; // Dirichlet boundary Call
 		}
 
@@ -1017,11 +1084,85 @@ namespace AlgoUtilities {
 
 	}
 
-	Matrix<double>* BSPriceMatrixCreator(MarketData3D md, DealData3D dd) {
-		double S = md.S;
-		double r = md.r;
-		std::vector<double> K = dd.K;
-		std::vector<double> T = dd.T;
+	Matrix<double>* FDMLocalVolpricerThetaScheme(MarketData3D* md, DealData3D* dd, double theta) {
+		int discretization_num_T = dd->discretization_num_T; //will be the same as size of K,T not to interpolate in the beginning
+		int discretization_num_K = dd->discretization_num_K;
+		double S = md->S;
+		double r = md->r;
+		std::vector<double> K = dd->K;
+		std::vector<double> T = dd->T;
+		Matrix<double>* sigma = md->sigma;
+		double sumOfTheSqrDifference = 0;
+		double delta_T = (T[discretization_num_T - 1] - T[0]) / (discretization_num_T - 1);
+		double delta_K = (K[discretization_num_K - 1] - K[0]) / (discretization_num_K - 1);
+
+		Matrix<double>* u = new Matrix<double>(discretization_num_T, discretization_num_K);
+		// setting initial condition at T = t0
+		for (int j = 0; j < discretization_num_K; j++) {
+			(*u)(0, j) = std::max(S - K[j], double(0));
+		}
+
+		Matrix<double>* A = new Matrix<double>(discretization_num_K, discretization_num_K);
+		Matrix<double>* H = new Matrix<double>(discretization_num_K, discretization_num_K);
+		Matrix<double>* B = new Matrix<double>(1,discretization_num_K);
+
+		Matrix<double>* alpha = new Matrix<double>(discretization_num_T, discretization_num_K);
+		Matrix<double>* beta = new Matrix<double>(discretization_num_T, discretization_num_K);
+		Matrix<double>* gamma = new Matrix<double>(discretization_num_T, discretization_num_K);
+
+		// filling the matrix of coefficients alpha, beta, gamma
+		fillAlphaBetaGammaFromSigmaDeltaT(alpha, beta, gamma, sigma, r, delta_T);
+		
+		if (theta == 0) {
+			for (int n = 0; n < discretization_num_T - 1; n++) {
+				//caclulating inputs for thomas algo to find u(n+1,:)
+				A = createATriagonalMatrix(alpha, beta, gamma, n + 1);
+				*H = (*A)*delta_T + double(1);
+				for (int k = 0; k < discretization_num_K; k++) {
+					(*B)(0, k) = (*u)(n, k) - (*alpha)(n + 1, 0)*S*delta_T;
+				}
+
+				// Run thomas algo
+				std::vector<double>* res = thomasAlgo(*H, *B);
+
+				// write results into our solution matrix
+				for (int i = 0; i < discretization_num_K; i++) {
+					(*u)(n + 1, i) = (*res)[i];
+				}
+			}
+		}
+
+		/*if (theta == 1) {
+			for (int n = 0; n < discretization_num_T - 1; n++) {
+				//caclulating inputs for thomas algo to find u(n+1,:)
+				*A = (*createATriagonalMatrix(alpha, beta, gamma, n))*delta_T + double(1);
+				for (int k = 0; k < discretization_num_K; k++) {
+					(*B)(0, k) = (*u)(n, k) - (*alpha)(n, 0)*S*delta_T;
+				}
+				std::vector<double>* res = thomasAlgo(*A, *B);
+
+				for (int i = 0; i < discretization_num_K; i++) {
+					(*u)(n + 1, i - 1) = (*res)[i];
+				}
+			}
+		}*/
+
+		delete alpha, beta, gamma, A, H, B;
+
+		return u;
+
+	}
+
+
+	
+	
+	// Additional functionality
+
+	Matrix<double>* BSPriceMatrixCreator(MarketData3D* md, DealData3D* dd) {
+		double S = md->S;
+		double r = md->r;
+		std::vector<double> K = dd->K;
+		std::vector<double> T = dd->T;
 		
 
 		int sz1 = T.size();
@@ -1032,9 +1173,16 @@ namespace AlgoUtilities {
 		for (int i = 0; i < sz1; i++) {
 
 			for (int j = 0; j < sz2; j++) {
+
+				double test = log(S / K[j]);
+				double test2 = (r + pow((*sigma)(i, j), 2) / 2)*T[i];
+				double test3 = sqrt(T[i]);
 				
 				double d1 = (1 / ((*sigma)(i,j) * sqrt(T[i])))*(log(S / K[j]) + (r + pow((*sigma)(i,j), 2) / 2)*T[i]);
 				//cout << "d1 = " << d1.getValue() << endl;
+				if (isnan(d1)){
+					d1 = INFINITY;
+				}
 
 				double d2 = d1 - (*sigma)(i,j) * sqrt(T[i]);
 				//cout << "d2 = " << d2.getValue() << endl;

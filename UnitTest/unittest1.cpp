@@ -139,7 +139,7 @@ public:
 		Matrix<double> res_sqr = (*prices) ^ 2;
 		double sum = res_sqr.sumOfElements();
 
-		system("pause");
+		//system("pause");
 	}
 
 	TEST_METHOD(Test3DEntities) {
@@ -150,23 +150,61 @@ public:
 		int myPopulationSize = 20;
 		GeneticAlgo::setSystemDoubleConstraints(0, 1);
 
-		DealData3D dd = DealData3D::DealData3D();
-		MarketData3D md = MarketData3D::MarketData3D();
-		Population3D::setDimensionsOf3DIndividuals(md.prices->size(0), md.prices->size(1));
-		Individual3D::setDimensionsOf3DIndividuals(md.prices->size(0), md.prices->size(1));
+		DealData3D* dd = new DealData3D(DealData3D::DealData3D());
+		MarketData3D* md = new MarketData3D(MarketData3D::MarketData3D());
+		md->prices = BSPriceMatrixCreator(md, dd); // CREATING THE MATRIX OF MARKET PRICES FORM MARKET DATA
+		Population3D::setDimensionsOf3DIndividuals(md->prices->size(0), md->prices->size(1));
+		Individual3D::setDimensionsOf3DIndividuals(md->prices->size(0), md->prices->size(1));
 
 		Population3D* myPop = new Population3D(myPopulationSize);
 		
 		int i = 0;
-		Matrix<double>* x = myPop->getIndividual(i).getTargetMatrix();
-		bool gene_test = myPop->getIndividual(i).getGene(0, 0, 63);
+		Matrix<double>* x = myPop->getIndividual(i)->getTargetMatrix();
+		bool gene_test = myPop->getIndividual(i)->getGene(0, 0, 63);
 
 		//boost::dynamic_bitset<> x2 = BSSqrDiffBitwise3D(md, dd);
 		//double res = GeneticAlgo::convertBitToDouble(x2);
 
 
- 		system("pause");
+ 		//system("pause");
 	}
+
+	TEST_METHOD(TestFDMLocalVolPricer) {
+		DealData3D* dd = new DealData3D(DealData3D::DealData3D());
+		MarketData3D* md = new MarketData3D(MarketData3D::MarketData3D());
+		md->sigma = new Matrix<double>(dd->discretization_num_T, dd->discretization_num_K, 0.2);
+		md->prices = BSPriceMatrixCreator(md, dd); // CREATING THE MATRIX OF MARKET PRICES FORM MARKET DATA
+
+		Matrix<double>* u = FDMLocalVolpricer(md, dd);
+		Matrix<double> dif = (*u - *(md->prices))/(*(md->prices));
+		Matrix<double> difabs = (*u - *(md->prices));
+		Matrix<double> res = dif.abs();
+		double max = res.max();
+
+		double sumdif = dif.sumOfElements()/u->size();
+
+		system("pause");
+
+	}
+
+	TEST_METHOD(TestFDMLocalVolpricerThetaScheme) {
+		DealData3D* dd = new DealData3D(DealData3D::DealData3D());
+		MarketData3D* md = new MarketData3D(MarketData3D::MarketData3D());
+		md->sigma = new Matrix<double>(dd->discretization_num_T, dd->discretization_num_K, 0.2);
+		md->prices = BSPriceMatrixCreator(md, dd); // CREATING THE MATRIX OF MARKET PRICES FORM MARKET DATA
+
+		Matrix<double>* u = FDMLocalVolpricerThetaScheme(md, dd, 0);
+		Matrix<double> dif = (*u - *(md->prices)) / (*(md->prices));
+		Matrix<double> difabs = (*u - *(md->prices));
+		Matrix<double> res = dif.abs();
+		double max = res.max();
+
+		double sumdif = dif.sumOfElements() / u->size();
+
+		system("pause");
+
+	}
+
 
 	// algos to test 
 	TEST_METHOD(TestGeneticAlgoBS) {
@@ -209,24 +247,24 @@ public:
 		int myPopulationSize = 20;
 		GeneticAlgo::setSystemDoubleConstraints(0.19, 0.21);
 
-		DealData3D dd = DealData3D::DealData3D();
-		MarketData3D md = MarketData3D::MarketData3D();
-		md.prices = BSPriceMatrixCreator(md, dd); // CREATING THE MATRIX OF MARKET PRICES FORM MARKET DATA
-		size_t sz1 = md.prices->size(0);
-		size_t sz2 = md.prices->size(1);
-		Population3D::setDimensionsOf3DIndividuals(md.prices->size(0), md.prices->size(1));
+		DealData3D* dd = new DealData3D(DealData3D::DealData3D());
+		MarketData3D* md = new MarketData3D(MarketData3D::MarketData3D());
+		md->prices = BSPriceMatrixCreator(md, dd); // CREATING THE MATRIX OF MARKET PRICES FORM MARKET DATA
+		size_t sz1 = md->prices->size(0);
+		size_t sz2 = md->prices->size(1);
+		Population3D::setDimensionsOf3DIndividuals(md->prices->size(0), md->prices->size(1));
 
 		Population3D* myPop = new Population3D(myPopulationSize);
 		
 		int generationCount = 0;
 
-		while (myPop->getFittestForBS(md, dd).getFitnessForBSModel(md, dd) < -100) {
+		while (myPop->getFittestForBS(md, dd)->getFitnessForBSModel(md, dd) < -100) {
 			generationCount = generationCount + 1;
-			myPop = GeneticAlgo::evolvePopulation(*myPop);
+			myPop = GeneticAlgo::evolvePopulation(myPop);
 		}
 
 		double gc = generationCount;
-		Matrix<double>* res = (myPop->getFittestForBS(md, dd)).getTargetMatrix();
+		Matrix<double>* res = (myPop->getFittestForBS(md, dd))->getTargetMatrix();
 		//Assert::AreEqual(md.sigma, double(precision));
 		system("pause");
 	}

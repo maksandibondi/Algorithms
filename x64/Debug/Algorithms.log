@@ -1,8 +1,9 @@
 ﻿  AlgoUtilities.cpp
-c:\users\mbondare\downloads\fx adjoint\algorithms\algoutilities.h(144): warning C4091: 'static ': ignored on left of 'AlgoUtilities::DealData3D' when no variable is declared
-c:\users\mbondare\downloads\fx adjoint\algorithms\algoutilities.h(153): warning C4091: 'static ': ignored on left of 'AlgoUtilities::MarketData3D' when no variable is declared
-c:\users\mbondare\downloads\fx adjoint\algorithms\algoutilities.h(161): warning C4091: 'static ': ignored on left of 'AlgoUtilities::DealData' when no variable is declared
-c:\users\mbondare\downloads\fx adjoint\algorithms\algoutilities.h(171): warning C4091: 'static ': ignored on left of 'AlgoUtilities::MarketData' when no variable is declared
-c:\users\mbondare\downloads\fx adjoint\algorithms\algoutilities.h(133): warning C4715: 'AlgoUtilities::Matrix<AlgoUtilities::Individual>::size': not all control paths return a value
+c:\users\mbondare\downloads\fx adjoint\algorithms\algoutilities.h(238): warning C4091: 'static ': ignored on left of 'AlgoUtilities::DealData3D' when no variable is declared
+c:\users\mbondare\downloads\fx adjoint\algorithms\algoutilities.h(247): warning C4091: 'static ': ignored on left of 'AlgoUtilities::MarketData3D' when no variable is declared
+c:\users\mbondare\downloads\fx adjoint\algorithms\algoutilities.h(255): warning C4091: 'static ': ignored on left of 'AlgoUtilities::DealData' when no variable is declared
+c:\users\mbondare\downloads\fx adjoint\algorithms\algoutilities.h(265): warning C4091: 'static ': ignored on left of 'AlgoUtilities::MarketData' when no variable is declared
+c:\users\mbondare\downloads\fx adjoint\algorithms\algoutilities.h(227): warning C4715: 'AlgoUtilities::Matrix<AlgoUtilities::Individual * __ptr64>::size': not all control paths return a value
+c:\users\mbondare\downloads\fx adjoint\algorithms\algoutilities.h(227): warning C4715: 'AlgoUtilities::Matrix<double>::size': not all control paths return a value
   Algorithms.vcxproj -> C:\Users\mbondare\Downloads\FX adjoint\Algorithms\x64\Debug\Algorithms.dll
   Algorithms.vcxproj -> C:\Users\mbondare\Downloads\FX adjoint\Algorithms\x64\Debug\Algorithms.pdb (Partial PDB)

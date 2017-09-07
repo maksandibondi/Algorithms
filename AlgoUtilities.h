@@ -57,8 +57,7 @@ namespace AlgoUtilities {
 		}
 
 		Matrix<T> operator+(Matrix<T>& a) {
-			size_t sz1 = this->d1;
-			size_t sz2 = this->d2;
+
 			Matrix<T> res = Matrix(d1, d2);
 
 			for (int i = 0; i < d1; i++) {
@@ -70,8 +69,7 @@ namespace AlgoUtilities {
 		}
 
 		Matrix<T> operator-(Matrix<T>& a) {
-			size_t sz1 = this->d1;
-			size_t sz2 = this->d2;
+
 			Matrix<T> res = Matrix(d1, d2);
 
 			for (int i = 0; i < d1; i++) {
@@ -82,9 +80,89 @@ namespace AlgoUtilities {
 			return res;
 		}
 
+		Matrix<T> operator*(Matrix<T>& a) {
+			Matrix<T> res = Matrix(d1, d2);
+
+			for (int i = 0; i < d1; i++) {
+				for (int j = 0; j < d2; j++) {
+					res(i, j) = data[i*d2 + j] * a;
+				}
+			}
+			return res;
+		}
+
+		Matrix<T> operator/(Matrix<T>& a) {
+
+			Matrix<T> res = Matrix(d1, d2);
+
+			for (int i = 0; i < d1; i++) {
+				for (int j = 0; j < d2; j++) {
+					if (a(i, j) == 0) {
+						res(i, j) = INFINITY;
+					}
+					else {
+						res(i, j) = data[i*d2 + j] / a(i, j);
+					}
+				}
+			}
+			return res;
+		}
+
+		Matrix<T> operator+(T a) {
+
+			Matrix<T> res = Matrix(d1, d2);
+
+			for (int i = 0; i < d1; i++) {
+				for (int j = 0; j < d2; j++) {
+					res(i, j) = data[i*d2 + j] + a;
+				}
+			}
+			return res;
+		}
+
+		Matrix<T> operator-(T a) {
+
+			Matrix<T> res = Matrix(d1, d2);
+
+			for (int i = 0; i < d1; i++) {
+				for (int j = 0; j < d2; j++) {
+					res(i, j) = data[i*d2 + j] - a;
+				}
+			}
+			return res;
+		}
+
+		Matrix<T> operator*(T a) {
+
+			Matrix<T> res = Matrix(d1, d2);
+
+			for (int i = 0; i < d1; i++) {
+				for (int j = 0; j < d2; j++) {
+						res(i, j) = data[i*d2 + j] * a;
+				}
+			}
+			return res;
+		}
+
+		Matrix<T> operator/(T a) {
+
+			Matrix<T> res = Matrix(d1, d2);
+
+			for (int i = 0; i < d1; i++) {
+				for (int j = 0; j < d2; j++) {
+					if (a == 0) {
+						res(i, j) = INFINITY;
+					}
+					else {
+						res(i, j) = data[i*d2 + j] / a;
+					}
+				}
+			}
+			return res;
+		}
+
 		Matrix<T> operator^(int power) {
-			size_t sz1 = this->d1;
-			size_t sz2 = this->d2;
+
 			Matrix<T> res = Matrix(d1, d2);
 
 			for (int i = 0; i < d1; i++) {
@@ -93,6 +171,22 @@ namespace AlgoUtilities {
 				}
 			}
 			return res;
+		}
+
+		Matrix<T> abs() {
+	
+			Matrix<T> res = Matrix(d1, d2);
+
+			for (int i = 0; i < d1; i++) {
+				for (int j = 0; j < d2; j++) {
+					res(i, j) = std::abs(data[i*d2 + j]);
+				}
+			}
+			return res;
+		}
+
+		T max() {
+			return *(std::max_element(data.begin(), data.end()));
 		}
 
 		// scalar product
@@ -208,7 +302,7 @@ namespace AlgoUtilities {
 	class Individual3D {
 		static boost::dynamic_bitset<> solution;
 		static int precision;
-		Matrix<Individual> *indivs;
+		Matrix<Individual*> *indivs;
 		static size_t dim1;
 		static size_t dim2;
 		int fitness = 0;
@@ -217,12 +311,12 @@ namespace AlgoUtilities {
 		Individual3D();
 		bool getGene(size_t idx1, size_t idx2, int genIndex);
 		double getTarget(size_t idx1, size_t idx2);
-		Matrix<Individual>* getIndividualsMatrix();
+		Matrix<Individual*>* getIndividualsMatrix();
 		Matrix<double>* getTargetMatrix();
 		//void setGene(size_t d1, size_t d2, int genIndex, bool value, bool &stateMin, bool &stateMax);
 		int getFitness();
 		//int getFitnessForBSModel(MarketData md, DealData dd);
-		double getFitnessForBSModel(MarketData3D md, DealData3D dd);
+		double getFitnessForBSModel(MarketData3D* md, DealData3D* dd);
 		static void setSolution(boost::dynamic_bitset<> sol);
 		static int getPrecision();
 		static void setDimensionsOf3DIndividuals(size_t d1, size_t d2);
@@ -230,18 +324,18 @@ namespace AlgoUtilities {
 	};
 
 	class Population3D {
-		std::vector<Individual3D> individuals;
+		std::vector<Individual3D*> *individuals;
 	public:
 		static size_t dim1; // dimension of Individual3D
 		static size_t dim2; // dimension of Individual3D
 
 		Population3D();
 		Population3D(int& size);
-		Individual3D& getIndividual(int& index);
-		void setIndividual(int& index, Individual3D indiv);
-		Individual3D getFittest();
-		Individual3D getFittestForBS(MarketData3D md, DealData3D dd);
-		void addAnIndividual(Individual3D indiv);
+		Individual3D* getIndividual(int& index);
+		void setIndividual(int& index, Individual3D* indiv);
+		Individual3D* getFittest();
+		Individual3D* getFittestForBS(MarketData3D* md, DealData3D* dd);
+		void addAnIndividual(Individual3D* indiv);
 		int size();
 		static void setDimensionsOf3DIndividuals(size_t d1, size_t d2);
 	};
@@ -266,10 +360,10 @@ namespace AlgoUtilities {
 		static void mutate(Individual& indiv);
 
 		
-		static Population3D* evolvePopulation(Population3D& pop);
-		static Individual3D* tournamentSelection(Population3D& pop);
-		static Individual3D* crossover(Individual3D& indiv1, Individual3D& indiv2);
-		static void mutate(Individual3D& indiv);
+		static Population3D* evolvePopulation(Population3D* pop);
+		static Individual3D* tournamentSelection(Population3D* pop);
+		static Individual3D* crossover(Individual3D* indiv1, Individual3D* indiv2);
+		static void mutate(Individual3D* indiv);
 		
 
 		static void initializeAlgoInput(double uniformRate, double mutationRate, int tournamentSize, bool elitism);
@@ -289,13 +383,23 @@ namespace AlgoUtilities {
 
 	static boost::dynamic_bitset<> BSSqrDiffBitwise(MarketData md, DealData dd);
 
-	static boost::dynamic_bitset<> BSSqrDiffBitwise3D(MarketData3D md, DealData3D dd);
+	static boost::dynamic_bitset<> BSSqrDiffBitwise3D(MarketData3D* md, DealData3D* dd);
 
-	double BSSqrDiff3D(MarketData3D md, DealData3D dd);
+	double BSSqrDiff3D(MarketData3D* md, DealData3D* dd);
 
-	Matrix<double>* FDMLocalVolpricer(MarketData3D md, DealData3D dd);
+	Matrix<double>* FDMLocalVolpricer(MarketData3D* md, DealData3D* dd);
 
-	Matrix<double>* BSPriceMatrixCreator(MarketData3D md, DealData3D dd);
+	Matrix<double>* FDMLocalVolpricerThetaScheme(MarketData3D* md, DealData3D* dd, double theta);
+
+
+	void fillAlphaBetaGammaFromSigmaDeltaT(Matrix<double>* alpha, Matrix<double>* beta, Matrix<double>* gamma, Matrix<double>* sigma, double r, double delta_T);
+
+	std::vector<double>* thomasAlgo(Matrix<double>& A, Matrix<double>& B);
+
+	Matrix<double>* createATriagonalMatrix(Matrix<double>* alpha, Matrix<double>* beta, Matrix<double>* gamma, int timeIndex);
+
+
+	Matrix<double>* BSPriceMatrixCreator(MarketData3D* md, DealData3D* dd);
 
 	static double NormalCDFCody(double u);
 
