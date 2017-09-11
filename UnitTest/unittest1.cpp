@@ -175,13 +175,13 @@ public:
 		md->sigma = new Matrix<double>(dd->discretization_num_T, dd->discretization_num_K, 0.2);
 		md->prices = BSPriceMatrixCreator(md, dd); // CREATING THE MATRIX OF MARKET PRICES FORM MARKET DATA
 
-		Matrix<double>* u = FDMLocalVolpricer(md, dd);
-		Matrix<double> dif = (*u - *(md->prices))/(*(md->prices));
-		Matrix<double> difabs = (*u - *(md->prices));
+		Matrix<double> u = FDMLocalVolpricer(md, dd);
+		Matrix<double> dif = (u - *(md->prices))/(*(md->prices));
+		Matrix<double> difabs = (u - *(md->prices));
 		Matrix<double> res = dif.abs();
 		double max = res.max();
 
-		double sumdif = dif.sumOfElements()/u->size();
+		double sumdif = dif.sumOfElements()/u.size();
 
 		system("pause");
 
@@ -193,13 +193,13 @@ public:
 		md->sigma = new Matrix<double>(dd->discretization_num_T, dd->discretization_num_K, 0.2);
 		md->prices = BSPriceMatrixCreator(md, dd); // CREATING THE MATRIX OF MARKET PRICES FORM MARKET DATA
 
-		Matrix<double>* u = FDMLocalVolpricerThetaScheme(md, dd, 0);
-		Matrix<double> dif = (*u - *(md->prices)) / (*(md->prices));
-		Matrix<double> difabs = (*u - *(md->prices));
+		Matrix<double> u = FDMLocalVolpricerThetaScheme(md, dd, 0);
+		Matrix<double> dif = (u - *(md->prices)) / (*(md->prices));
+		Matrix<double> difabs = (u - *(md->prices));
 		Matrix<double> res = dif.abs();
 		double max = res.max();
 
-		double sumdif = dif.sumOfElements() / u->size();
+		double sumdif = dif.sumOfElements() / u.size();
 
 		system("pause");
 

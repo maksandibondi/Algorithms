@@ -963,9 +963,9 @@ namespace AlgoUtilities {
 
 	boost::dynamic_bitset<> BSSqrDiffBitwise3D(MarketData3D* md, DealData3D* dd) {
 
-		Matrix<double>* price = FDMLocalVolpricer(md, dd);
+		Matrix<double> price = FDMLocalVolpricer(md, dd);
 
-		double sumOfTheSqrDifference = ((*price - *(md->prices))^2).sumOfElements();
+		double sumOfTheSqrDifference = ((price - *(md->prices))^2).sumOfElements();
 	
 		boost::dynamic_bitset<> x = GeneticAlgo::convertDoubleTo64Bit(sumOfTheSqrDifference);
 
@@ -977,9 +977,9 @@ namespace AlgoUtilities {
 
 	double BSSqrDiff3D(MarketData3D* md, DealData3D* dd) {
 
-		Matrix<double>* price = FDMLocalVolpricer(md, dd);
+		Matrix<double> price = FDMLocalVolpricer(md, dd);
 
-		double sumOfTheSqrDifference = ((*price - *(md->prices)) ^ 2).sumOfElements();
+		double sumOfTheSqrDifference = ((price - *(md->prices)) ^ 2).sumOfElements();
 
 		return sumOfTheSqrDifference;
 
@@ -988,66 +988,64 @@ namespace AlgoUtilities {
 
 
 	// Matrix fill and theta-schema utilities
-	std::vector<double>* thomasAlgo(Matrix<double>& A, Matrix<double>& B) {
+	std::vector<double> thomasAlgo(Matrix<double>& A, Matrix<double>& B) {
 		int szRow = A.size(0);
 
-		std::vector<double>* res = new std::vector<double>(szRow, 0);
-		std::vector<double>* c = new std::vector<double>(szRow, 0);
-		std::vector<double>* d = new std::vector<double>(szRow, 0);
-
-		(*c)[0] = A(0, 1) / A(0, 0);
-		(*d)[0] = B(0, 0) / A(0, 0);
+		std::vector<double> res (szRow, 0);
+		std::vector<double> c (szRow, 0);
+		std::vector<double> d (szRow, 0);
+		//B(0, 0) = 110;
+		c[0] = A(0, 1) / A(0, 0);
+		d[0] = B(0, 0) / A(0, 0);
 
 		// forward walk: looking for transformed A matrix members
 		for (int i = 1; i < szRow-1; i++) {
-			(*c)[i] = A(i, i + 1) / (A(i, i) - (*c)[i - 1] * A(i, i - 1));
-			(*d)[i] = (B(0, i) - (*d)[i - 1] * A(i, i - 1)) / (A(i, i) - (*c)[i - 1] * A(i, i - 1));
+			c[i] = A(i, i + 1) / (A(i, i) - c[i - 1] * A(i, i - 1));
+			d[i] = (B(0, i) - d[i - 1] * A(i, i - 1)) / (A(i, i) - c[i - 1] * A(i, i - 1));
 		}
-		(*d)[szRow - 1] = (B(0, szRow - 1) - (*d)[szRow - 2] * A(szRow - 1, szRow - 2)) / (A(szRow - 1, szRow - 1) - (*c)[szRow - 2] * A(szRow - 1, szRow - 2));
+		d[szRow - 1] = (B(0, szRow - 1) - d[szRow - 2] * A(szRow - 1, szRow - 2)) / (A(szRow - 1, szRow - 1) - c[szRow - 2] * A(szRow - 1, szRow - 2));
 		
 		// backward walk: finding the solutions
-		(*res)[szRow - 1] = (*d)[szRow - 1];
+		res[szRow - 1] = 0;// d[szRow - 1];
 		for (int i = szRow - 1; i > 0; i--) {
-			(*res)[i - 1] = (*d)[i - 1] - (*res)[i] * (*c)[i-1];
+			res[i - 1] = d[i - 1] - res[i] * c[i - 1];
 		}
 
-		delete c, d;
 		return res;
-
 	}
 
-	Matrix<double>* createATriagonalMatrix(Matrix<double>* alpha, Matrix<double>* beta, Matrix<double>* gamma, int timeIndex) {
-		int sz = alpha->size(1);
-		Matrix<double>* triagonal = new Matrix<double>(sz, sz, 0);
+	Matrix<double> createATriagonalMatrix(Matrix<double>& alpha, Matrix<double>& beta, Matrix<double>& gamma, int timeIndex) {
+		int sz = alpha.size(1);
+		Matrix<double> triagonal (sz, sz, 0);
 
-		(*triagonal)(0, 0) = (*beta)(timeIndex, 0);
-		(*triagonal)(0, 1) = (*gamma)(timeIndex, 0);
-		(*triagonal)(sz - 1, sz - 1) = (*beta)(timeIndex, sz - 1);
-		(*triagonal)(sz - 1, sz - 2) = (*alpha)(timeIndex, sz - 1);
+		triagonal(0, 0) = beta(timeIndex, 0);
+		triagonal(0, 1) = gamma(timeIndex, 0);
+		triagonal(sz - 1, sz - 1) = beta(timeIndex, sz - 1);
+		triagonal(sz - 1, sz - 2) = alpha(timeIndex, sz - 1);
 
 		for (int i = 1; i < sz - 1; i++) {
-			(*triagonal)(i, i) = (*beta)(timeIndex, i);
-			(*triagonal)(i, i - 1) = (*alpha)(timeIndex, i);
-			(*triagonal)(i, i + 1) = (*gamma)(timeIndex, i);
+			triagonal(i, i) = beta(timeIndex, i);
+			triagonal(i, i - 1) = alpha(timeIndex, i);
+			triagonal(i, i + 1) = gamma(timeIndex, i);
 		}
 
 		return triagonal;
 
 	}
 
-	void fillAlphaBetaGammaFromSigmaDeltaT(Matrix<double>* alpha, Matrix<double>* beta, Matrix<double>* gamma, Matrix<double>* sigma, double r, double delta_T) {
+	void fillAlphaBetaGammaFromSigmaDeltaT(Matrix<double>& alpha, Matrix<double>& beta, Matrix<double>& gamma, Matrix<double>& sigma, double r, double delta_T) {
 
-		*alpha = ((*sigma)^2)*(-1 / (2*pow(delta_T, 2)) - 1 / (4 * delta_T)) - r / (2 * delta_T);
+		alpha = ((sigma)^2)*(-1 / (2*pow(delta_T, 2)) - 1 / (4 * delta_T)) - r / (2 * delta_T);
 
-		*beta = ((*sigma)^2) / (delta_T*delta_T);
+		beta = ((sigma)^2) / (delta_T*delta_T);
 
-		*gamma = ((*sigma)^2)*(-1 / (2*pow(delta_T, 2)) + 1 / (4 * delta_T)) + r / (2 * delta_T);
+		gamma = ((sigma)^2)*(-1 / (2*pow(delta_T, 2)) + 1 / (4 * delta_T)) + r / (2 * delta_T);
 	}
 
 
 	// Pricers
 
-	Matrix<double>* FDMLocalVolpricer(MarketData3D* md, DealData3D* dd) {
+	Matrix<double> FDMLocalVolpricer(MarketData3D* md, DealData3D* dd) {
 		
 		int discretization_num_T = dd->discretization_num_T; //will be the same as size of K,T not to interpolate in the beginning
 		int discretization_num_K = dd->discretization_num_K;
@@ -1060,23 +1058,23 @@ namespace AlgoUtilities {
 		double delta_T = (T[discretization_num_T-1] - T[0]) / (discretization_num_T-1);
 		double delta_K = (K[discretization_num_K-1] - K[0]) / (discretization_num_K-1);
 		
-		Matrix<double>* u = new Matrix<double>(discretization_num_T, discretization_num_K);
+		Matrix<double> u (discretization_num_T, discretization_num_K);
 		// setting initial condition at T = t0
 		for (int j = 0; j < discretization_num_K; j++) {
-			(*u)(0, j) = std::max(S - exp(-r*T[0])*K[j], double(0));
+			u(0, j) = std::max(S - exp(-r*T[0])*K[j], double(0));
 		}
 
 		// setting boundary conditions for K = K0; K = end; 
 		//if K>>S0 -> u(:,K) -> 0     if K<<S0 -> u(T(i),K) -> S0-K*exp(-r*T(i)) for all i
 		for (int i = 0; i < discretization_num_T; i++) {
-			(*u)(i, 0) = S - K[0]; // Dirichlet boundary Call
-			(*u)(i, discretization_num_K - 1) = 0; // Dirichlet boundary Call
+			u(i, 0) = S - K[0]; // Dirichlet boundary Call
+			u(i, discretization_num_K - 1) = 0; // Dirichlet boundary Call
 		}
 
 		// Solution of PDE
 		for (int i = 0; i < discretization_num_T-1; i++) {
 			for (int j = 1; j < discretization_num_K-1; j++) {
-				(*u)(i + 1, j) = (*u)(i, j) + 0.5*pow((*sigma)(i, j),2)*(pow(K[i],2))*((*u)(i, j + 1) + (*u)(i, j - 1) - 2 * ((*u)(i, j)))*delta_T / (pow(delta_K, 2)) - r*K[i] * ((*u)(i, j + 1) - (*u)(i, j))*delta_T / delta_K;
+				u(i + 1, j) = u(i, j) + 0.5*pow((*sigma)(i, j),2)*(pow(K[i],2))*(u(i, j + 1) + u(i, j - 1) - 2 * (u(i, j)))*delta_T / (pow(delta_K, 2)) - r*K[i] * (u(i, j + 1) - u(i, j))*delta_T / delta_K;
 			}
 		}
 
@@ -1084,7 +1082,7 @@ namespace AlgoUtilities {
 
 	}
 
-	Matrix<double>* FDMLocalVolpricerThetaScheme(MarketData3D* md, DealData3D* dd, double theta) {
+	Matrix<double> FDMLocalVolpricerThetaScheme(MarketData3D* md, DealData3D* dd, double theta) {
 		int discretization_num_T = dd->discretization_num_T; //will be the same as size of K,T not to interpolate in the beginning
 		int discretization_num_K = dd->discretization_num_K;
 		double S = md->S;
@@ -1096,65 +1094,45 @@ namespace AlgoUtilities {
 		double delta_T = (T[discretization_num_T - 1] - T[0]) / (discretization_num_T - 1);
 		double delta_K = (K[discretization_num_K - 1] - K[0]) / (discretization_num_K - 1);
 
-		Matrix<double>* u = new Matrix<double>(discretization_num_T, discretization_num_K);
+		Matrix<double> u (discretization_num_T, discretization_num_K);
 		// setting initial condition at T = t0
 		for (int j = 0; j < discretization_num_K; j++) {
-			(*u)(0, j) = std::max(S - K[j], double(0));
+			u(0, j) = std::max(S - K[j], double(0));
 		}
 
-		Matrix<double>* A = new Matrix<double>(discretization_num_K, discretization_num_K);
-		Matrix<double>* H = new Matrix<double>(discretization_num_K, discretization_num_K);
-		Matrix<double>* B = new Matrix<double>(1,discretization_num_K);
+		Matrix<double> B (1, discretization_num_K);
+		Matrix<double> alpha(discretization_num_T, discretization_num_K);
+		Matrix<double> beta (discretization_num_T, discretization_num_K);
+		Matrix<double> gamma (discretization_num_T, discretization_num_K);
 
-		Matrix<double>* alpha = new Matrix<double>(discretization_num_T, discretization_num_K);
-		Matrix<double>* beta = new Matrix<double>(discretization_num_T, discretization_num_K);
-		Matrix<double>* gamma = new Matrix<double>(discretization_num_T, discretization_num_K);
 
 		// filling the matrix of coefficients alpha, beta, gamma
-		fillAlphaBetaGammaFromSigmaDeltaT(alpha, beta, gamma, sigma, r, delta_T);
+		fillAlphaBetaGammaFromSigmaDeltaT(alpha, beta, gamma, *sigma, r, delta_T);
 		
 		if (theta == 0) {
 			for (int n = 0; n < discretization_num_T - 1; n++) {
 				//caclulating inputs for thomas algo to find u(n+1,:)
-				A = createATriagonalMatrix(alpha, beta, gamma, n + 1);
-				*H = (*A)*delta_T + double(1);
+				Matrix<double> A = createATriagonalMatrix(alpha, beta, gamma, n + 1);
+				Matrix<double> H = A*delta_T + double(1);
 				for (int k = 0; k < discretization_num_K; k++) {
-					(*B)(0, k) = (*u)(n, k) - (*alpha)(n + 1, 0)*S*delta_T;
+					B(0, k) = u(n, k) - (alpha)(n + 1, 0)*S*delta_T*std::max(1-k,0);
 				}
 
 				// Run thomas algo
-				std::vector<double>* res = thomasAlgo(*H, *B);
+				std::vector<double> res = thomasAlgo(H, B);
 
 				// write results into our solution matrix
 				for (int i = 0; i < discretization_num_K; i++) {
-					(*u)(n + 1, i) = (*res)[i];
+					u(n + 1, i) = res[i];
 				}
 			}
 		}
 
-		/*if (theta == 1) {
-			for (int n = 0; n < discretization_num_T - 1; n++) {
-				//caclulating inputs for thomas algo to find u(n+1,:)
-				*A = (*createATriagonalMatrix(alpha, beta, gamma, n))*delta_T + double(1);
-				for (int k = 0; k < discretization_num_K; k++) {
-					(*B)(0, k) = (*u)(n, k) - (*alpha)(n, 0)*S*delta_T;
-				}
-				std::vector<double>* res = thomasAlgo(*A, *B);
-
-				for (int i = 0; i < discretization_num_K; i++) {
-					(*u)(n + 1, i - 1) = (*res)[i];
-				}
-			}
-		}*/
-
-		delete alpha, beta, gamma, A, H, B;
 
 		return u;
 
 	}
 
-
-	
 	
 	// Additional functionality
 
@@ -1167,7 +1145,7 @@ namespace AlgoUtilities {
 
 		int sz1 = T.size();
 		int sz2 = K.size();
-		Matrix<double>* sigma = new Matrix<double>(sz1, sz2, 0.2);
+		Matrix<double> sigma (sz1, sz2, 0.2);
 		Matrix<double>* prices = new Matrix<double>(sz1, sz2);
 
 		for (int i = 0; i < sz1; i++) {
@@ -1175,16 +1153,16 @@ namespace AlgoUtilities {
 			for (int j = 0; j < sz2; j++) {
 
 				double test = log(S / K[j]);
-				double test2 = (r + pow((*sigma)(i, j), 2) / 2)*T[i];
+				double test2 = (r + pow(sigma(i, j), 2) / 2)*T[i];
 				double test3 = sqrt(T[i]);
 				
-				double d1 = (1 / ((*sigma)(i,j) * sqrt(T[i])))*(log(S / K[j]) + (r + pow((*sigma)(i,j), 2) / 2)*T[i]);
+				double d1 = (1 / (sigma(i,j) * sqrt(T[i])))*(log(S / K[j]) + (r + pow(sigma(i,j), 2) / 2)*T[i]);
 				//cout << "d1 = " << d1.getValue() << endl;
 				if (isnan(d1)){
 					d1 = INFINITY;
 				}
 
-				double d2 = d1 - (*sigma)(i,j) * sqrt(T[i]);
+				double d2 = d1 - sigma(i,j) * sqrt(T[i]);
 				//cout << "d2 = " << d2.getValue() << endl;
 
 				double price = (NormalCDFCody(d1)*S) - (NormalCDFCody(d2)*K[j]*exp(-r*T[i]));

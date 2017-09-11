@@ -225,6 +225,15 @@ namespace AlgoUtilities {
 			}
 			
 		}
+
+		T Determinant() {
+			T det = 0;
+			for (int i = 0; i < d2; i++) {
+
+			det = det + 
+			}
+
+		}
 				
 	};
 
@@ -387,16 +396,16 @@ namespace AlgoUtilities {
 
 	double BSSqrDiff3D(MarketData3D* md, DealData3D* dd);
 
-	Matrix<double>* FDMLocalVolpricer(MarketData3D* md, DealData3D* dd);
+	Matrix<double> FDMLocalVolpricer(MarketData3D* md, DealData3D* dd);
 
-	Matrix<double>* FDMLocalVolpricerThetaScheme(MarketData3D* md, DealData3D* dd, double theta);
+	Matrix<double> FDMLocalVolpricerThetaScheme(MarketData3D* md, DealData3D* dd, double theta);
 
 
-	void fillAlphaBetaGammaFromSigmaDeltaT(Matrix<double>* alpha, Matrix<double>* beta, Matrix<double>* gamma, Matrix<double>* sigma, double r, double delta_T);
+	void fillAlphaBetaGammaFromSigmaDeltaT(Matrix<double>& alpha, Matrix<double>& beta, Matrix<double>& gamma, Matrix<double>& sigma, double r, double delta_T);
 
-	std::vector<double>* thomasAlgo(Matrix<double>& A, Matrix<double>& B);
+	std::vector<double> thomasAlgo(Matrix<double>& A, Matrix<double>& B);
 
-	Matrix<double>* createATriagonalMatrix(Matrix<double>* alpha, Matrix<double>* beta, Matrix<double>* gamma, int timeIndex);
+	Matrix<double> createATriagonalMatrix(Matrix<double>& alpha, Matrix<double>& beta, Matrix<double>& gamma, int timeIndex);
 
 
 	Matrix<double>* BSPriceMatrixCreator(MarketData3D* md, DealData3D* dd);
