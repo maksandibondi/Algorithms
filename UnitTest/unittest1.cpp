@@ -139,7 +139,9 @@ public:
 		Matrix<double> res_sqr = (*prices) ^ 2;
 		double sum = res_sqr.sumOfElements();
 
-		//system("pause");
+		Matrix<double> a(4, 4, char('id'));
+
+		system("pause");
 	}
 
 	TEST_METHOD(Test3DEntities) {
@@ -205,6 +207,16 @@ public:
 
 	}
 
+	TEST_METHOD(TestPopRowsColsFromMatrix) {
+		Matrix<double> a(3, 4, 0);
+		a(0, 0) = 1;
+		a(1, 0) = 2;
+		a(1, 3) = 1;
+		a(2, 2) = 3;
+
+		a.pop({ 0,2 }, { 0,3 });
+		//system("pause");
+	}
 
 	// algos to test 
 	TEST_METHOD(TestGeneticAlgoBS) {

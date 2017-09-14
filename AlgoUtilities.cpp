@@ -21,16 +21,16 @@ namespace AlgoUtilities {
 
 	DealData3D::DealData3D() {
 		discretization_num_T = 20;
-		discretization_num_K = 40;
+		discretization_num_K = 55;
 		
 		K = *(new std::vector<double>(discretization_num_K, 0));
 		for (int j = 1; j < discretization_num_K; j++) {
-			K[j] = K[j - 1] + 5;
+			K[j] = K[j - 1] + 4;
 		}
 
 		T = *(new std::vector<double>(discretization_num_T, 0));
 		for (int i = 1; i < discretization_num_T; i++) {
-			T[i] = T[i - 1] + 0.05;
+			T[i] = T[i - 1] + 0.1;
 		}
 		//T = { double(30) / double(365) };
 	}
@@ -1003,10 +1003,11 @@ namespace AlgoUtilities {
 			c[i] = A(i, i + 1) / (A(i, i) - c[i - 1] * A(i, i - 1));
 			d[i] = (B(0, i) - d[i - 1] * A(i, i - 1)) / (A(i, i) - c[i - 1] * A(i, i - 1));
 		}
-		d[szRow - 1] = (B(0, szRow - 1) - d[szRow - 2] * A(szRow - 1, szRow - 2)) / (A(szRow - 1, szRow - 1) - c[szRow - 2] * A(szRow - 1, szRow - 2));
+		d[szRow - 1] = (B(0, szRow - 1) - d[szRow - 1 - 1] * A(szRow - 1, szRow - 1 - 1)) / (A(szRow - 1, szRow - 1) - c[szRow - 1 - 1] * A(szRow - 1, szRow - 1 - 1));
 		
 		// backward walk: finding the solutions
-		res[szRow - 1] = 0;// d[szRow - 1];
+		res[szRow - 1] = d[szRow - 1];
+
 		for (int i = szRow - 1; i > 0; i--) {
 			res[i - 1] = d[i - 1] - res[i] * c[i - 1];
 		}
@@ -1015,7 +1016,7 @@ namespace AlgoUtilities {
 	}
 
 	Matrix<double> createATriagonalMatrix(Matrix<double>& alpha, Matrix<double>& beta, Matrix<double>& gamma, int timeIndex) {
-		int sz = alpha.size(1);
+		int sz = alpha.size(1)-2;
 		Matrix<double> triagonal (sz, sz, 0);
 
 		triagonal(0, 0) = beta(timeIndex, 0);
@@ -1033,13 +1034,19 @@ namespace AlgoUtilities {
 
 	}
 
-	void fillAlphaBetaGammaFromSigmaDeltaT(Matrix<double>& alpha, Matrix<double>& beta, Matrix<double>& gamma, Matrix<double>& sigma, double r, double delta_T) {
+	void fillAlphaBetaGammaFromSigmaDeltaT(Matrix<double>& alpha, Matrix<double>& beta, Matrix<double>& gamma, Matrix<double>& sigma, double r, double delta_K) {
+		int d1 = alpha.size(0);
+		int d2 = alpha.size(1);
 
-		alpha = ((sigma)^2)*(-1 / (2*pow(delta_T, 2)) - 1 / (4 * delta_T)) - r / (2 * delta_T);
 
-		beta = ((sigma)^2) / (delta_T*delta_T);
+		alpha = ((sigma)^2)*(-1 / (2*pow(delta_K, 2)) - 1 / (4 * delta_K)) - r / (2 * delta_K);
+		//alpha.pop({ 0,d1-1 }, { 0,d2-1 });
 
-		gamma = ((sigma)^2)*(-1 / (2*pow(delta_T, 2)) + 1 / (4 * delta_T)) + r / (2 * delta_T);
+		beta = ((sigma)^2) / (delta_K*delta_K);
+		//beta.pop({ 0,d1-1 }, { 0,d2-1 });
+
+		gamma = ((sigma)^2)*(-1 / (2*pow(delta_K, 2)) + 1 / (4 * delta_K)) + r / (2 * delta_K);
+		//gamma.pop({ 0,d1-1 }, { 0,d2-1 });
 	}
 
 
@@ -1093,37 +1100,43 @@ namespace AlgoUtilities {
 		double sumOfTheSqrDifference = 0;
 		double delta_T = (T[discretization_num_T - 1] - T[0]) / (discretization_num_T - 1);
 		double delta_K = (K[discretization_num_K - 1] - K[0]) / (discretization_num_K - 1);
+		double delta_log_K = (log(K[discretization_num_K - 1]) - log(K[1])) / (discretization_num_K - 1);
 
 		Matrix<double> u (discretization_num_T, discretization_num_K);
 		// setting initial condition at T = t0
 		for (int j = 0; j < discretization_num_K; j++) {
 			u(0, j) = std::max(S - K[j], double(0));
 		}
+		// setting initial condtion for K = k0
+		for (int i = 0; i < discretization_num_T; i++) {
+			u(i, 0) = S;
+		}
 
-		Matrix<double> B (1, discretization_num_K);
+
+		Matrix<double> B (1, discretization_num_K-2);
 		Matrix<double> alpha(discretization_num_T, discretization_num_K);
 		Matrix<double> beta (discretization_num_T, discretization_num_K);
 		Matrix<double> gamma (discretization_num_T, discretization_num_K);
 
 
 		// filling the matrix of coefficients alpha, beta, gamma
-		fillAlphaBetaGammaFromSigmaDeltaT(alpha, beta, gamma, *sigma, r, delta_T);
+		fillAlphaBetaGammaFromSigmaDeltaT(alpha, beta, gamma, *sigma, r, delta_log_K);
 		
 		if (theta == 0) {
 			for (int n = 0; n < discretization_num_T - 1; n++) {
 				//caclulating inputs for thomas algo to find u(n+1,:)
-				Matrix<double> A = createATriagonalMatrix(alpha, beta, gamma, n + 1);
-				Matrix<double> H = A*delta_T + double(1);
-				for (int k = 0; k < discretization_num_K; k++) {
-					B(0, k) = u(n, k) - (alpha)(n + 1, 0)*S*delta_T*std::max(1-k,0);
+				Matrix<double> A = createATriagonalMatrix(alpha, beta, gamma, n + 1); // An+1 = 38*38
+				Matrix<double> H = A*delta_T + Matrix<double>(A.size(0), A.size(1), char('id')); // Hn
+				for (int k = 0; k < discretization_num_K-2; k++) {
+					B(0, k) = u(n, k+1) - (alpha)(n + 1, 0)*S*delta_T*std::max(1-k,0); // Bn
 				}
 
 				// Run thomas algo
 				std::vector<double> res = thomasAlgo(H, B);
 
 				// write results into our solution matrix
-				for (int i = 0; i < discretization_num_K; i++) {
-					u(n + 1, i) = res[i];
+				for (int i = 1; i < discretization_num_K-1; i++) {
+					u(n + 1, i) = res[i-1];
 				}
 			}
 		}

@@ -22,6 +22,7 @@ namespace AlgoUtilities {
 		size_t d1, d2;
 		std::vector<T> data; //linearazation vector for matrix
 	public:
+
 		Matrix(size_t d1, size_t d2) {
 			this->d1 = d1;
 			this->d2 = d2;
@@ -31,10 +32,25 @@ namespace AlgoUtilities {
 		Matrix(size_t d1, size_t d2, T value) {
 			this->d1 = d1;
 			this->d2 = d2;
-			this->data.resize(d1*d2);
-			int sz = data.size();
-			for (int i = 0; i < sz; i++) {
-				data[i] = value;
+			size_t sz = d1*d2;
+			this->data.resize(sz);
+			
+			if (value == char('id')) {
+				
+					for (int i = 0; i < sz; i++) {
+						data[i] = 0;
+					}
+
+					if (d1 == d2) {
+						for (int i = 0; i < d1; i++) {
+							data[i*d2 + i] = double(1);
+						}
+					}
+				
+			} else {
+				for (int i = 0; i < sz; i++) {
+					data[i] = value;
+				}
 			}
 		}
 
@@ -49,6 +65,16 @@ namespace AlgoUtilities {
 				}
 			}
 		}
+
+		Matrix(std::vector<T> vec) {
+			size_t sz = vec.size();
+			this->data.resize(sz);
+			for (int i = 0; i < sz; i++) {
+				data[i] = vec[i];
+			}
+		}
+
+		
 
 		// rechanrging of operator = is not necessary as next function will return a reference to the member that we wanna set
 
@@ -234,6 +260,37 @@ namespace AlgoUtilities {
 			}
 
 		}
+
+		std::vector<T>* getDataVector() {
+			std::vector<T>* p = &data;
+			return p;
+		}
+
+		void pop(std::vector<int> rowsToExtract, std::vector<int> colsToExtract) {
+			size_t sz1 = rowsToExtract.size();
+			size_t sz2 = colsToExtract.size();
+			size_t d_1 = d1;
+			size_t d_2 = d2;
+
+			int counter = 0;
+			for (int i = 0; i < sz1; i++) {
+				data.erase(data.begin() + (rowsToExtract[i]-counter) * d2, data.begin() + (rowsToExtract[i] - counter) * d2 + d2);
+				d1 = d1 - 1;
+				counter++;
+			}
+
+			counter = 0;
+			for (int i = 0; i < sz2; i++) {
+				for (int k = 0; k < d_1-1-1; k++) {
+					data.erase(data.begin() + (colsToExtract[i] - counter) + k*(d2-1));
+				}
+				
+				d2 = d2 - 1;
+				counter++;
+			}
+
+		}
+
 				
 	};
 
@@ -401,7 +458,7 @@ namespace AlgoUtilities {
 	Matrix<double> FDMLocalVolpricerThetaScheme(MarketData3D* md, DealData3D* dd, double theta);
 
 
-	void fillAlphaBetaGammaFromSigmaDeltaT(Matrix<double>& alpha, Matrix<double>& beta, Matrix<double>& gamma, Matrix<double>& sigma, double r, double delta_T);
+	void fillAlphaBetaGammaFromSigmaDeltaT(Matrix<double>& alpha, Matrix<double>& beta, Matrix<double>& gamma, Matrix<double>& sigma, double r, double delta_K);
 
 	std::vector<double> thomasAlgo(Matrix<double>& A, Matrix<double>& B);
 
