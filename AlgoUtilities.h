@@ -13,6 +13,7 @@
 #include <iostream>
 #include <random>
 #include <bitset>
+#include <numeric>
 
 
 namespace AlgoUtilities {
@@ -111,7 +112,7 @@ namespace AlgoUtilities {
 
 			for (int i = 0; i < d1; i++) {
 				for (int j = 0; j < d2; j++) {
-					res(i, j) = data[i*d2 + j] * a;
+					res(i, j) = data[i*d2 + j] * a(i,j);
 				}
 			}
 			return res;
@@ -290,9 +291,10 @@ namespace AlgoUtilities {
 			}
 
 		}
-
-				
+	
 	};
+
+
 
 	static class DealData3D{
 	public:
@@ -458,7 +460,7 @@ namespace AlgoUtilities {
 	Matrix<double> FDMLocalVolpricerThetaScheme(MarketData3D* md, DealData3D* dd, double theta);
 
 
-	void fillAlphaBetaGammaFromSigmaDeltaT(Matrix<double>& alpha, Matrix<double>& beta, Matrix<double>& gamma, Matrix<double>& sigma, double r, double delta_K);
+	void fillAlphaBetaGammaFromSigmaDeltaT(Matrix<double>& alpha, Matrix<double>& beta, Matrix<double>& gamma, Matrix<double>& sigma, double r, std::vector<double>& K, int discretization_num_K, char discretizationType);
 
 	std::vector<double> thomasAlgo(Matrix<double>& A, Matrix<double>& B);
 

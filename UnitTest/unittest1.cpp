@@ -171,6 +171,19 @@ public:
  		//system("pause");
 	}
 
+	TEST_METHOD(TestSumOfSqrDif) {
+		DealData3D* dd = new DealData3D(DealData3D::DealData3D());
+		MarketData3D* md = new MarketData3D(MarketData3D::MarketData3D());
+		md->sigma = new Matrix<double>(dd->discretization_num_T, dd->discretization_num_K, 0.2);
+		md->prices = BSPriceMatrixCreator(md, dd); // CREATING THE MATRIX OF MARKET PRICES FORM MARKET DATA
+
+		double sumOfSqrDifRel = BSSqrDiff3D(md, dd);
+
+		system("pause");
+
+
+	}
+
 	TEST_METHOD(TestFDMLocalVolPricer) {
 		DealData3D* dd = new DealData3D(DealData3D::DealData3D());
 		MarketData3D* md = new MarketData3D(MarketData3D::MarketData3D());
@@ -195,8 +208,11 @@ public:
 		md->sigma = new Matrix<double>(dd->discretization_num_T, dd->discretization_num_K, 0.2);
 		md->prices = BSPriceMatrixCreator(md, dd); // CREATING THE MATRIX OF MARKET PRICES FORM MARKET DATA
 
-		Matrix<double> u = FDMLocalVolpricerThetaScheme(md, dd, 0);
+		Matrix<double> u = FDMLocalVolpricerThetaScheme(md, dd, 0); // Implicit scheme pricer
+		Matrix<double> u2 = FDMLocalVolpricer(md, dd); // Explicit scheme pricer 
 		Matrix<double> dif = (u - *(md->prices)) / (*(md->prices));
+		Matrix<double> dif2 = (u2 - *(md->prices)) / (*(md->prices));
+
 		Matrix<double> difabs = (u - *(md->prices));
 		Matrix<double> res = dif.abs();
 		double max = res.max();
@@ -257,7 +273,7 @@ public:
 		boost::dynamic_bitset<> sol(precision);
 		Individual::setSolution(sol);
 		int myPopulationSize = 20;
-		GeneticAlgo::setSystemDoubleConstraints(0.19, 0.21);
+		GeneticAlgo::setSystemDoubleConstraints(0, 1);
 
 		DealData3D* dd = new DealData3D(DealData3D::DealData3D());
 		MarketData3D* md = new MarketData3D(MarketData3D::MarketData3D());
@@ -270,9 +286,12 @@ public:
 		
 		int generationCount = 0;
 
-		while (myPop->getFittestForBS(md, dd)->getFitnessForBSModel(md, dd) < -100) {
+		std::vector<double>* f = new std::vector<double>();
+		f->push_back(myPop->getFittestForBS(md, dd)->getFitnessForBSModel(md, dd));
+		while ((*f)[generationCount] < -0.01) {
 			generationCount = generationCount + 1;
 			myPop = GeneticAlgo::evolvePopulation(myPop);
+			f->push_back(myPop->getFittestForBS(md, dd)->getFitnessForBSModel(md, dd));
 		}
 
 		double gc = generationCount;
