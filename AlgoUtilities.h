@@ -432,6 +432,9 @@ namespace AlgoUtilities {
 		static Individual3D* tournamentSelection(Population3D* pop);
 		static Individual3D* crossover(Individual3D* indiv1, Individual3D* indiv2);
 		static void mutate(Individual3D* indiv);
+		//trial
+		static Population3D* GeneticAlgo::evolvePopulation(Population3D* pop, MarketData3D* md, DealData3D* dd);
+		static Individual3D* GeneticAlgo::tournamentSelection(Population3D* pop, MarketData3D* md, DealData3D* dd);
 		
 
 		static void initializeAlgoInput(double uniformRate, double mutationRate, int tournamentSize, bool elitism);

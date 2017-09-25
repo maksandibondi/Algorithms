@@ -234,6 +234,18 @@ public:
 		//system("pause");
 	}
 
+	TEST_METHOD(TestMatrixARamaCont) {
+		DealData3D* dd = new DealData3D(DealData3D::DealData3D());
+		MarketData3D* md = new MarketData3D(MarketData3D::MarketData3D());
+		md->sigma = new Matrix<double>(dd->discretization_num_T, dd->discretization_num_K, 0.2);
+		md->prices = BSPriceMatrixCreator(md, dd); // CREATING THE MATRIX OF MARKET PRICES FORM MARKET DATA
+
+		
+
+		system("pause");
+
+	}
+
 	// algos to test 
 	TEST_METHOD(TestGeneticAlgoBS) {
 		GeneticAlgo::initializeAlgoInput(0.5, 0.06, 5, 0);
@@ -268,12 +280,12 @@ public:
 
 	// algos to test 
 	TEST_METHOD(TestGeneticAlgoBSLocalVol) {
-		GeneticAlgo::initializeAlgoInput(0.5, 0.05, 5, 0);
+		GeneticAlgo::initializeAlgoInput(0.5, 0.01, 5, 0);
 		int precision = 64; // precision in bits
 		boost::dynamic_bitset<> sol(precision);
 		Individual::setSolution(sol);
-		int myPopulationSize = 20;
-		GeneticAlgo::setSystemDoubleConstraints(0, 1);
+		int myPopulationSize = 30;
+		GeneticAlgo::setSystemDoubleConstraints(0, 0.7);
 
 		DealData3D* dd = new DealData3D(DealData3D::DealData3D());
 		MarketData3D* md = new MarketData3D(MarketData3D::MarketData3D());
@@ -290,7 +302,7 @@ public:
 		f->push_back(myPop->getFittestForBS(md, dd)->getFitnessForBSModel(md, dd));
 		while ((*f)[generationCount] < -0.01) {
 			generationCount = generationCount + 1;
-			myPop = GeneticAlgo::evolvePopulation(myPop);
+			myPop = GeneticAlgo::evolvePopulation(myPop, md, dd);
 			f->push_back(myPop->getFittestForBS(md, dd)->getFitnessForBSModel(md, dd));
 		}
 
@@ -300,7 +312,7 @@ public:
 		system("pause");
 	}
 	
-
+	
 
 	};
 

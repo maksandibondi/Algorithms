@@ -21,11 +21,11 @@ namespace AlgoUtilities {
 
 	DealData3D::DealData3D() {
 		discretization_num_T = 10;
-		discretization_num_K = 40;
+		discretization_num_K = 200;
 		
 		K = *(new std::vector<double>(discretization_num_K, 0.005)); // initial value if K is defined 0.005
 		for (int j = 1; j < discretization_num_K; j++) {
-			K[j] = K[j - 1] + 5;
+			K[j] = K[j - 1] + 1;
 		}
 
 		T = *(new std::vector<double>(discretization_num_T, 0));
@@ -619,6 +619,47 @@ namespace AlgoUtilities {
 	}
 
 
+	//trial
+	Population3D* GeneticAlgo::evolvePopulation(Population3D* pop, MarketData3D* md, DealData3D* dd) {
+		int size = pop->size();
+
+		Population3D* newPopulation = new Population3D(size);
+		// Keep the best individual
+		if (elitism) {
+			newPopulation->addAnIndividual(pop->getFittest());
+		}
+
+		// add the new individuals to newPopulation individuals vector
+		for (int i = 0; i < size - elitism; i++) {
+			Individual3D* indiv1 = tournamentSelection(pop, md,dd);
+			Individual3D* indiv2 = tournamentSelection(pop,md, dd);
+			Individual3D* newIndiv = crossover(indiv1, indiv2);
+			newPopulation->setIndividual(i, newIndiv);
+		}
+
+		// Mutate population
+		for (int i = 0; i < size; i++) {
+			mutate(newPopulation->getIndividual(i));
+		}
+
+		return newPopulation;
+	}
+
+	Individual3D* GeneticAlgo::tournamentSelection(Population3D* pop, MarketData3D* md, DealData3D* dd) {
+		Individual3D* fittest = new Individual3D();
+		int sz = pop->size();
+		// Create a tournament population
+		Population3D* tournament = new Population3D(tournamentSize);
+		// For each place in the tournament get a random individual
+		for (int i = 0; i < tournamentSize; i++) {
+			int randomId = (int)(((double)rand() / (double)RAND_MAX) * (sz - 1));
+			tournament->setIndividual(i, pop->getIndividual(randomId));
+		}
+		// Get the fittest
+		fittest = tournament->getFittestForBS(md,dd);
+		return fittest;
+	}
+
 
 
 
@@ -980,10 +1021,10 @@ namespace AlgoUtilities {
 		Matrix<double> price = FDMLocalVolpricerThetaScheme(md, dd, 0);
 
 
-		std::vector<int> colsToExtract1(dd->discretization_num_K/2 - 6); // vector of indicies to extract
-		std::vector<int> colsToExtract2(dd->discretization_num_K/2 - 6);
+		std::vector<int> colsToExtract1(dd->discretization_num_K/2 - 4); // vector of indicies to extract
+		std::vector<int> colsToExtract2(dd->discretization_num_K/2 - 4);
 		std::iota(std::begin(colsToExtract1), std::end(colsToExtract1), 0); // Fill with 0, 1, ..., 99.
-		std::iota(std::begin(colsToExtract2), std::end(colsToExtract2), dd->discretization_num_K / 2 + 6);
+		std::iota(std::begin(colsToExtract2), std::end(colsToExtract2), dd->discretization_num_K / 2 + 4);
 		colsToExtract1.insert(colsToExtract1.end(), colsToExtract2.begin(), colsToExtract2.end());
 
 		Matrix<double> market = *(md->prices);
@@ -1112,6 +1153,121 @@ namespace AlgoUtilities {
 			break;
 		}
 	}
+
+
+	// RamaCont approach utilities
+	Matrix<double> fillAmatrix(std::vector<double> T, std::vector<double> K, std::vector<double> knots){
+		
+		int M = knots.size(); // for cubic polynomial size of knots = K.size+3+1 (two more values in the end and in the beginning)
+		int M2 = K.size();
+		int N = T.size();
+		int sz = N*M2;
+		Matrix<double> A(sz, sz, 0);
+
+		// filling second derivatives
+		for (int i = 0; i < N-1; i++) {
+
+			for (int m = 2; m < M-2; m++) {
+				
+				A(i*N + m-2, (i + 1)*N + m-2) = pow(scalarBasisCubicSecondDer(knots, m, K[m]), 2)*(T[i + 1] - T[i]) / 2;
+
+			}
+
+		}
+
+		// filling first square
+		for (int i = 0; i < N - 1; i++) {
+
+			for (int m = 2; m < M - 2; m++) {
+
+				double f = scalarBasisCubic(knots, m, K[m-2]);
+				A(i*N + m - 2, i*N + m - 2) = pow(f / (T[i + 1] - T[i]), 2);
+				A((i + 1)*N + m - 2, (i + 1)*N + m - 2) = pow(f / (T[i + 1] - T[i]), 2);
+				A(i*N + m - 2, (i+1)*N + m - 2) = -2*pow(f / (T[i + 1] - T[i]), 2);
+			}
+
+		}
+
+		// filling terms with fm , fm-1
+
+		for (int i = 0; i < N - 1; i++) {
+
+			for (int m = 2; m < M - 2; m++) {
+
+				double f = scalarBasisCubic(knots, m, K[m-2]); // fm
+				double f_ = scalarBasisCubic(knots, m-1, K[m-3]); // fm-1
+
+				A(i*N + m - 2, i*N + m - 2 - 1) = pow(f / (T[i + 1] - T[i]), 2);
+				A(i*N + m - 2, (i+1)*N + m - 2 - 1) = -f*f_/pow(T[i + 1] - T[i], 2);
+
+
+				A((i + 1)*N + m - 2, (i + 1)*N + m - 2) = pow(f / (T[i + 1] - T[i]), 2);
+				A((i + 1)*N + m - 2, i*N + m - 2) = -2 * pow(f / (T[i + 1] - T[i]), 2);
+			}
+
+		}
+
+	}
+
+	std::vector<double> scalarBasisDeBoor(std::vector<double> knots, int m, int polynomialOrder, int K) {
+
+	}
+
+	double scalarBasisCubic(std::vector<double> knots, int m, double K) {
+		double val;
+		
+		if (K <= knots[m - 2]) {
+			val = 0;
+		}
+		else if (K >= knots[m - 2] && K <= knots[m - 1]) {
+			double temp = (K - knots[m - 2]) / (knots[m - 1] - knots[m - 2]);
+			val = (temp*temp*temp) / 6;
+		}
+		else if (K >= knots[m - 1] && K <= knots[m]) {
+			double temp = (K - knots[m - 1]) / (knots[m] - knots[m - 1]);
+			val = (1 / 6)*(1 + 3 * temp + 3 * (temp*temp) - 3 * (temp*temp*temp));
+		}
+		else if (K >= knots[m] && K <= knots[m + 1]) {
+			double temp = (K - knots[m]) / (knots[m + 1] - knots[m]);
+			val = (1 / 6)*(4 - 6 * (temp*temp) + 3 * (temp*temp*temp));
+		}
+		else if (K >= knots[m + 1] && K <= knots[m + 2]) {
+			double temp = (K - knots[m + 1]) / (knots[m + 2] - knots[m + 1]);
+			val = (1 / 6)*pow((1 - temp),3);
+		}
+		else if (K >= knots[m + 2]) {
+			val = 0;
+		}
+
+		return val;
+
+	}
+
+	double scalarBasisCubicSecondDer(std::vector<double> knots, int m, double K) {
+		double val;
+
+		if (K <= knots[m - 2]) {
+			val = 0;
+		}
+		else if (K >= knots[m - 2] && K <= knots[m - 1]) {
+			val = (K - knots[m - 2]) /pow((knots[m - 1] - knots[m - 2]),3);
+		}
+		else if (K >= knots[m - 1] && K <= knots[m]) {
+			val = (knots[m] - knots[m - 1] - 3 * (K - knots[m - 1])) / pow(knots[m] - knots[m - 1], 3);
+		}
+		else if (K >= knots[m] && K <= knots[m + 1]) {
+			val = (3 * (K - knots[m]) - 2 * (knots[m + 1] - knots[m])) / pow(knots[m + 1] - knots[m], 3);
+		}
+		else if (K >= knots[m + 1] && K <= knots[m + 2]) {
+			val = -(K - knots[m + 1]) / pow(knots[m + 2] - knots[m + 1], 3);
+		}
+		else if (K >= knots[m + 2]) {
+			val = 0;
+		}
+
+		return val;
+	}
+
 
 
 	// Pricers
