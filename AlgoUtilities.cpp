@@ -1156,116 +1156,285 @@ namespace AlgoUtilities {
 
 
 	// RamaCont approach utilities
-	Matrix<double> fillAmatrix(std::vector<double> T, std::vector<double> K, std::vector<double> knots){
+
+	// generator of theta matrix (N, Nknots-4) under constraints and transforming it into vector (d,1). In matrix A of size (d,d) K-vector is used to calculate spline basis in every point (i,m)  
+
+	Matrix<double> fillAmatrix(std::vector<double> T, std::vector<double> logK, std::vector<double> knots){
 		
-		int M = knots.size(); // for cubic polynomial size of knots = K.size+3+1 (two more values in the end and in the beginning)
-		int M2 = K.size();
+		int Nknots = knots.size(); // for cubic polynomial size of knots = K.size+3+1 (two more values in the end and in the beginning)
+		int M = Nknots-4;
 		int N = T.size();
-		int sz = N*M2;
+		int sz = N*M;
 		Matrix<double> A(sz, sz, 0);
 
 		// filling second derivatives
-		for (int i = 0; i < N-1; i++) {
+		/*for (int i = 0; i < N - 1; i++) {
 
-			for (int m = 2; m < M-2; m++) {
+			for (int m = 2; m < Nknots - 2; m++) {
 				
-				A(i*N + m-2, (i + 1)*N + m-2) = pow(scalarBasisCubicSecondDer(knots, m, K[m]), 2)*(T[i + 1] - T[i]) / 2;
+				A(i*N + m-2, (i + 1)*N + m-2) = pow(scalarBasisCubicSecondDerSqr(knots, m, logK), 2)*(T[i + 1] - T[i]) / 2;
 
 			}
 
-		}
+		}*/
 
 		// filling first square
 		for (int i = 0; i < N - 1; i++) {
 
-			for (int m = 2; m < M - 2; m++) {
+			for (int m = 2; m < Nknots - 2; m++) {
 
-				double f = scalarBasisCubic(knots, m, K[m-2]);
-				A(i*N + m - 2, i*N + m - 2) = pow(f / (T[i + 1] - T[i]), 2);
-				A((i + 1)*N + m - 2, (i + 1)*N + m - 2) = pow(f / (T[i + 1] - T[i]), 2);
-				A(i*N + m - 2, (i+1)*N + m - 2) = -2*pow(f / (T[i + 1] - T[i]), 2);
+				double f = scalarBasisCubicSqr(knots, m, logK); // squared integral (sum of fm for all K)
+				A(i*N + m - 2, i*N + m - 2) = f / pow((T[i + 1] - T[i]), 2);
+				A((i + 1)*N + m - 2, (i + 1)*N + m - 2) = f / pow((T[i + 1] - T[i]), 2);
+				A(i*N + m - 2, (i+1)*N + m - 2) = -2 * f / pow((T[i + 1] - T[i]), 2);
 			}
 
 		}
 
-		// filling terms with fm , fm-1
-
+		// filling terms with fm , fm-1	
 		for (int i = 0; i < N - 1; i++) {
 
-			for (int m = 2; m < M - 2; m++) {
+			for (int m = 3; m < Nknots - 3; m++) {
 
-				double f = scalarBasisCubic(knots, m, K[m-2]); // fm
-				double f_ = scalarBasisCubic(knots, m-1, K[m-3]); // fm-1
-
-				A(i*N + m - 2, i*N + m - 2 - 1) = pow(f / (T[i + 1] - T[i]), 2);
-				A(i*N + m - 2, (i+1)*N + m - 2 - 1) = -f*f_/pow(T[i + 1] - T[i], 2);
-
-
-				A((i + 1)*N + m - 2, (i + 1)*N + m - 2) = pow(f / (T[i + 1] - T[i]), 2);
-				A((i + 1)*N + m - 2, i*N + m - 2) = -2 * pow(f / (T[i + 1] - T[i]), 2);
+				double f = scalarBasisCubicCross1(knots, m, logK); // fm
+				
+				A(i*N + m - 2, i*N + m - 2 - 1) = f / pow((T[i + 1] - T[i]), 2);
+				A(i*N + m - 2, (i + 1)*N + m - 2 - 1) = -f / pow(T[i + 1] - T[i], 2);
+				A((i + 1)*N + m - 2, (i + 1)*N + m - 2 - 1) = f / pow((T[i + 1] - T[i]), 2);
+				A(i*N + m - 2 - 1, (i + 1)*N + m - 2) = -f / pow((T[i + 1] - T[i]), 2);
 			}
 
 		}
 
+		// filling terms with fm , fm+1	
+		for (int i = 0; i < N - 1; i++) {
+
+			for (int m = 3; m < Nknots - 3; m++) {
+
+				double f = scalarBasisCubicCross2(knots, m, logK); // fm
+
+				A(i*N + m - 2, i*N + m - 2 + 1) = f / pow((T[i + 1] - T[i]), 2);
+				A(i*N + m - 2 + 1, (i + 1)*N + m - 2) = -f / pow(T[i + 1] - T[i], 2);
+				A((i + 1)*N + m - 2, (i + 1)*N + m - 2 + 1) = f / pow((T[i + 1] - T[i]), 2);
+				A(i*N + m - 2, (i+1)*N + m - 2 + 1) = -f / pow((T[i + 1] - T[i]), 2);
+			}
+
+		}
+
+
+		return A;
+
+	}
+
+
+	double scalarBasisCubicSqr(std::vector<double> knots, int m, std::vector<double> K) {
+		double val = 0;
+		int sz = K.size();
+
+		// calculation of the integral of fm^2 over K values
+		for (int i = 0; i < sz; i++) {
+
+			if (K[i] <= knots[m - 2]) {
+				val += 0;
+			}
+			else if (K[i] >= knots[m - 2] && K[i] <= knots[m - 1]) {
+				double temp = (K[i] - knots[m - 2]) / (knots[m - 1] - knots[m - 2]);
+				val += pow((temp*temp*temp) / 6, 2);
+			}
+			else if (K[i] >= knots[m - 1] && K[i] <= knots[m]) {
+				double temp = (K[i] - knots[m - 1]) / (knots[m] - knots[m - 1]);
+				val += pow((1 / 6)*(1 + 3 * temp + 3 * (temp*temp) - 3 * (temp*temp*temp)),2);
+			}
+			else if (K[i] >= knots[m] && K[i] <= knots[m + 1]) {
+				double temp = (K[i] - knots[m]) / (knots[m + 1] - knots[m]);
+				val += pow((1 / 6)*(4 - 6 * (temp*temp) + 3 * (temp*temp*temp)),2);
+			}
+			else if (K[i] >= knots[m + 1] && K[i] <= knots[m + 2]) {
+				double temp = (K[i] - knots[m + 1]) / (knots[m + 2] - knots[m + 1]);
+				val += pow((1 / 6)*pow((1 - temp), 3),2);
+			}
+			else if (K[i] >= knots[m + 2]) {
+				val += 0;
+			}
+		}
+		
+		return val;
+
+	}
+
+	double scalarBasisCubicSecondDerSqr(std::vector<double> knots, int m, std::vector<double> K) {
+		double val = 0;
+		int sz = K.size();
+
+		// calculation of the integral of fm'' ^ 2 over K values
+		for (int i = 0; i < sz; i++) {
+
+			if (K[i] <= knots[m - 2]) {
+				val += 0;
+			}
+			else if (K[i] >= knots[m - 2] && K[i] <= knots[m - 1]) {
+				val += pow((K[i] - knots[m - 2]) / pow((knots[m - 1] - knots[m - 2]), 3),2);
+			}
+			else if (K[i] >= knots[m - 1] && K[i] <= knots[m]) {
+				val += pow((knots[m] - knots[m - 1] - 3 * (K[i] - knots[m - 1])) / pow(knots[m] - knots[m - 1], 3),2);
+			}
+			else if (K[i] >= knots[m] && K[i] <= knots[m + 1]) {
+				val += pow((3 * (K[i] - knots[m]) - 2 * (knots[m + 1] - knots[m])) / pow(knots[m + 1] - knots[m], 3),2);
+			}
+			else if (K[i] >= knots[m + 1] && K[i] <= knots[m + 2]) {
+				val += pow(-(K[i] - knots[m + 1]) / pow(knots[m + 2] - knots[m + 1], 3),2);
+			}
+			else if (K[i] >= knots[m + 2]) {
+				val += 0;
+			}
+
+		}
+
+		return val;
+	}
+
+	double scalarBasisCubicCross1(std::vector<double> knots, int m, std::vector<double> K) {
+		double integral = 0;
+		int sz = K.size();
+		std::vector<double> val(sz,0);
+		// calculation of the integral over K values
+		
+		// loop for fm
+		for (int i = 0; i < sz; i++) {
+
+			if (K[i] <= knots[m - 2]) {
+				val[i] = 0;
+			}
+			else if (K[i] >= knots[m - 2] && K[i] <= knots[m - 1]) {
+				double temp = (K[i] - knots[m - 2]) / (knots[m - 1] - knots[m - 2]);
+				val[i] = (temp*temp*temp) / 6;
+			}
+			else if (K[i] >= knots[m - 1] && K[i] <= knots[m]) {
+				double temp = (K[i] - knots[m - 1]) / (knots[m] - knots[m - 1]);
+				val[i] = (1 / 6)*(1 + 3 * temp + 3 * (temp*temp) - 3 * (temp*temp*temp));
+			}
+			else if (K[i] >= knots[m] && K[i] <= knots[m + 1]) {
+				double temp = (K[i] - knots[m]) / (knots[m + 1] - knots[m]);
+				val[i] = (1 / 6)*(4 - 6 * (temp*temp) + 3 * (temp*temp*temp));
+			}
+			else if (K[i] >= knots[m + 1] && K[i] <= knots[m + 2]) {
+				double temp = (K[i] - knots[m + 1]) / (knots[m + 2] - knots[m + 1]);
+				val[i] = (1 / 6)*pow((1 - temp), 3);
+			}
+			else if (K[i] >= knots[m + 2]) {
+				val[i] = 0;
+			}
+		}
+
+		// loop for fm-1
+		for (int i = 0; i < sz; i++) {
+
+			if (K[i] <= knots[m - 2 - 1]) {
+				val[i] *= 0;
+				integral += val[i];
+			}
+			else if (K[i] >= knots[m - 2 - 1] && K[i] <= knots[m - 1 - 1]) {
+				double temp = (K[i] - knots[m - 2 - 1]) / (knots[m - 1 - 1] - knots[m - 2 - 1]);
+				val[i] *= (temp*temp*temp) / 6;
+				integral += val[i];
+			}
+			else if (K[i] >= knots[m - 1 - 1] && K[i] <= knots[m - 1]) {
+				double temp = (K[i] - knots[m - 1 - 1]) / (knots[m - 1] - knots[m - 1 -1]);
+				val[i] *= (1 / 6)*(1 + 3 * temp + 3 * (temp*temp) - 3 * (temp*temp*temp));
+				integral += val[i];
+			}
+			else if (K[i] >= knots[m - 1] && K[i] <= knots[m + 1 - 1]) {
+				double temp = (K[i] - knots[m - 1]) / (knots[m + 1 - 1] - knots[m - 1]);
+				val[i] *= (1 / 6)*(4 - 6 * (temp*temp) + 3 * (temp*temp*temp));
+				integral += val[i];
+			}
+			else if (K[i] >= knots[m + 1 - 1] && K[i] <= knots[m + 2 - 1]) {
+				double temp = (K[i] - knots[m + 1 - 1]) / (knots[m + 2 - 1] - knots[m + 1 - 1]);
+				val[i] *= (1 / 6)*pow((1 - temp), 3);
+				integral += val[i];
+			}
+			else if (K[i] >= knots[m + 2 - 1]) {
+				val[i] *= 0;
+				integral += val[i];
+			}
+		}
+
+
+		return integral;
+	}
+
+	double scalarBasisCubicCross2(std::vector<double> knots, int m, std::vector<double> K) {
+		double integral = 0;
+		int sz = K.size();
+		std::vector<double> val(sz,0);
+		// calculation of the integral over K values
+
+		// loop for fm
+		for (int i = 0; i < sz; i++) {
+
+			if (K[i] <= knots[m - 2]) {
+				val[i] = 0;
+			}
+			else if (K[i] >= knots[m - 2] && K[i] <= knots[m - 1]) {
+				double temp = (K[i] - knots[m - 2]) / (knots[m - 1] - knots[m - 2]);
+				val[i] = (temp*temp*temp) / 6;
+			}
+			else if (K[i] >= knots[m - 1] && K[i] <= knots[m]) {
+				double temp = (K[i] - knots[m - 1]) / (knots[m] - knots[m - 1]);
+				val[i] = (1 / 6)*(1 + 3 * temp + 3 * (temp*temp) - 3 * (temp*temp*temp));
+			}
+			else if (K[i] >= knots[m] && K[i] <= knots[m + 1]) {
+				double temp = (K[i] - knots[m]) / (knots[m + 1] - knots[m]);
+				val[i] = (1 / 6)*(4 - 6 * (temp*temp) + 3 * (temp*temp*temp));
+			}
+			else if (K[i] >= knots[m + 1] && K[i] <= knots[m + 2]) {
+				double temp = (K[i] - knots[m + 1]) / (knots[m + 2] - knots[m + 1]);
+				val[i] = (1 / 6)*pow((1 - temp), 3);
+			}
+			else if (K[i] >= knots[m + 2]) {
+				val[i] = 0;
+			}
+		}
+
+		// loop for fm+1
+		for (int i = 0; i < sz; i++) {
+
+			if (K[i] <= knots[m - 2 + 1]) {
+				val[i] *= 0;
+				integral += val[i];
+			}
+			else if (K[i] >= knots[m - 2 + 1] && K[i] <= knots[m - 1 + 1]) {
+				double temp = (K[i] - knots[m - 2 + 1]) / (knots[m - 1 + 1] - knots[m - 2 + 1]);
+				val[i] *= (temp*temp*temp) / 6;
+				integral += val[i];
+			}
+			else if (K[i] >= knots[m - 1 + 1] && K[i] <= knots[m + 1]) {
+				double temp = (K[i] - knots[m - 1 + 1]) / (knots[m + 1] - knots[m - 1 + 1]);
+				val[i] *= (1 / 6)*(1 + 3 * temp + 3 * (temp*temp) - 3 * (temp*temp*temp));
+				integral += val[i];
+			}
+			else if (K[i] >= knots[m + 1] && K[i] <= knots[m + 1 + 1]) {
+				double temp = (K[i] - knots[m + 1]) / (knots[m + 1 + 1] - knots[m + 1]);
+				val[i] *= (1 / 6)*(4 - 6 * (temp*temp) + 3 * (temp*temp*temp));
+				integral += val[i];
+			}
+			else if (K[i] >= knots[m + 1 + 1] && K[i] <= knots[m + 2 + 1]) {
+				double temp = (K[i] - knots[m + 1 + 1]) / (knots[m + 2 + 1] - knots[m + 1 + 1]);
+				val[i] *= (1 / 6)*pow((1 - temp), 3);
+				integral += val[i];
+			}
+			else if (K[i] >= knots[m + 2 + 1]) {
+				val[i] *= 0;
+				integral += val[i];
+			}
+		}
+
+
+		return integral;
 	}
 
 	std::vector<double> scalarBasisDeBoor(std::vector<double> knots, int m, int polynomialOrder, int K) {
-
-	}
-
-	double scalarBasisCubic(std::vector<double> knots, int m, double K) {
-		double val;
-		
-		if (K <= knots[m - 2]) {
-			val = 0;
-		}
-		else if (K >= knots[m - 2] && K <= knots[m - 1]) {
-			double temp = (K - knots[m - 2]) / (knots[m - 1] - knots[m - 2]);
-			val = (temp*temp*temp) / 6;
-		}
-		else if (K >= knots[m - 1] && K <= knots[m]) {
-			double temp = (K - knots[m - 1]) / (knots[m] - knots[m - 1]);
-			val = (1 / 6)*(1 + 3 * temp + 3 * (temp*temp) - 3 * (temp*temp*temp));
-		}
-		else if (K >= knots[m] && K <= knots[m + 1]) {
-			double temp = (K - knots[m]) / (knots[m + 1] - knots[m]);
-			val = (1 / 6)*(4 - 6 * (temp*temp) + 3 * (temp*temp*temp));
-		}
-		else if (K >= knots[m + 1] && K <= knots[m + 2]) {
-			double temp = (K - knots[m + 1]) / (knots[m + 2] - knots[m + 1]);
-			val = (1 / 6)*pow((1 - temp),3);
-		}
-		else if (K >= knots[m + 2]) {
-			val = 0;
-		}
-
-		return val;
-
-	}
-
-	double scalarBasisCubicSecondDer(std::vector<double> knots, int m, double K) {
-		double val;
-
-		if (K <= knots[m - 2]) {
-			val = 0;
-		}
-		else if (K >= knots[m - 2] && K <= knots[m - 1]) {
-			val = (K - knots[m - 2]) /pow((knots[m - 1] - knots[m - 2]),3);
-		}
-		else if (K >= knots[m - 1] && K <= knots[m]) {
-			val = (knots[m] - knots[m - 1] - 3 * (K - knots[m - 1])) / pow(knots[m] - knots[m - 1], 3);
-		}
-		else if (K >= knots[m] && K <= knots[m + 1]) {
-			val = (3 * (K - knots[m]) - 2 * (knots[m + 1] - knots[m])) / pow(knots[m + 1] - knots[m], 3);
-		}
-		else if (K >= knots[m + 1] && K <= knots[m + 2]) {
-			val = -(K - knots[m + 1]) / pow(knots[m + 2] - knots[m + 1], 3);
-		}
-		else if (K >= knots[m + 2]) {
-			val = 0;
-		}
-
-		return val;
+		return std::vector<double>(0);
 	}
 
 

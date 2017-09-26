@@ -240,7 +240,26 @@ public:
 		md->sigma = new Matrix<double>(dd->discretization_num_T, dd->discretization_num_K, 0.2);
 		md->prices = BSPriceMatrixCreator(md, dd); // CREATING THE MATRIX OF MARKET PRICES FORM MARKET DATA
 
+		int sz = dd->K.size();
+		double S = md->S;
+		std::vector<double> logK(sz,0);
+		// log strike price scale
+		for (int i = 0; i < sz; i++) {
+			logK[i] = log(dd->K[i] / S);
+		}
+		// creating knot vector
+		int Nknots = 14;
+		std::vector<double> knots(Nknots,0);
+		double min = logK.front()/2;
+		double max = logK.back();
+		double delta_x = (max - min) / (Nknots-1);
+		knots[0] = min;
+		for (int i = 1; i < Nknots; i++) {
+			knots[i] = knots[i - 1] + delta_x;
+		}
+
 		
+		Matrix<double> A = AlgoUtilities::fillAmatrix(dd->T, logK, knots);
 
 		system("pause");
 

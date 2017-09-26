@@ -1,4 +1,5 @@
-﻿  unittest1.cpp
+﻿  stdafx.cpp
+  unittest1.cpp
 c:\users\mbondare\downloads\fx adjoint\algorithms\algoutilities.h(306): warning C4091: 'static ': ignored on left of 'AlgoUtilities::DealData3D' when no variable is declared
 c:\users\mbondare\downloads\fx adjoint\algorithms\algoutilities.h(315): warning C4091: 'static ': ignored on left of 'AlgoUtilities::MarketData3D' when no variable is declared
 c:\users\mbondare\downloads\fx adjoint\algorithms\algoutilities.h(323): warning C4091: 'static ': ignored on left of 'AlgoUtilities::DealData' when no variable is declared
@@ -8,6 +9,7 @@ c:\users\mbondare\downloads\fx adjoint\algorithms\unittest\unittest1.cpp(67): wa
 c:\users\mbondare\downloads\fx adjoint\algorithms\unittest\unittest1.cpp(78): warning C4267: 'initializing': conversion from 'size_t' to 'int', possible loss of data
 c:\users\mbondare\downloads\fx adjoint\algorithms\unittest\unittest1.cpp(91): warning C4267: 'initializing': conversion from 'size_t' to 'int', possible loss of data
 c:\users\mbondare\downloads\fx adjoint\algorithms\unittest\unittest1.cpp(105): warning C4267: 'initializing': conversion from 'size_t' to 'int', possible loss of data
+c:\users\mbondare\downloads\fx adjoint\algorithms\unittest\unittest1.cpp(243): warning C4267: 'initializing': conversion from 'size_t' to 'int', possible loss of data
 c:\users\mbondare\downloads\boost_1_64_0\boost_1_64_0\boost\dynamic_bitset\dynamic_bitset.hpp(298): warning C4267: 'argument': conversion from 'size_t' to 'unsigned long', possible loss of data
   c:\users\mbondare\downloads\boost_1_64_0\boost_1_64_0\boost\dynamic_bitset\dynamic_bitset.hpp(297): note: while compiling class template member function 'boost::dynamic_bitset<unsigned long,std::allocator<Block>>::reference boost::dynamic_bitset<Block,std::allocator<Block>>::operator [](boost::dynamic_bitset<Block,std::allocator<Block>>::size_type)'
           with
@@ -40,5 +42,6 @@ c:\users\mbondare\downloads\fx adjoint\algorithms\algoutilities.h(62): warning C
               _Ty=double
           ]
 c:\users\mbondare\downloads\fx adjoint\algorithms\algoutilities.h(254): warning C4715: 'AlgoUtilities::Matrix<double>::size': not all control paths return a value
+     Creating library C:\Users\mbondare\Downloads\FX adjoint\Algorithms\x64\Debug\UnitTest.lib and object C:\Users\mbondare\Downloads\FX adjoint\Algorithms\x64\Debug\UnitTest.exp
   UnitTest.vcxproj -> C:\Users\mbondare\Downloads\FX adjoint\Algorithms\x64\Debug\UnitTest.dll
   UnitTest.vcxproj -> C:\Users\mbondare\Downloads\FX adjoint\Algorithms\x64\Debug\UnitTest.pdb (Partial PDB)

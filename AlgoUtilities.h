@@ -458,11 +458,26 @@ namespace AlgoUtilities {
 
 	double BSSqrDiff3D(MarketData3D* md, DealData3D* dd);
 
+	// RamaCont approach utilities
+	Matrix<double> fillAmatrix(std::vector<double> T, std::vector<double> logK, std::vector<double> knots);
+
+	double scalarBasisCubicSqr(std::vector<double> knots, int m, std::vector<double> K);
+
+	double scalarBasisCubicSecondDerSqr(std::vector<double> knots, int m, std::vector<double> K);
+
+	double scalarBasisCubicCross1(std::vector<double> knots, int m, std::vector<double> K);
+
+	double scalarBasisCubicCross2(std::vector<double> knots, int m, std::vector<double> K);
+
+	std::vector<double> scalarBasisDeBoor(std::vector<double> knots, int m, int polynomialOrder, int K);
+
+	// Pricers
 	Matrix<double> FDMLocalVolpricer(MarketData3D* md, DealData3D* dd);
 
 	Matrix<double> FDMLocalVolpricerThetaScheme(MarketData3D* md, DealData3D* dd, double theta);
 
 
+	// Matrix fill and theta-schema utilities
 	void fillAlphaBetaGammaFromSigmaDeltaT(Matrix<double>& alpha, Matrix<double>& beta, Matrix<double>& gamma, Matrix<double>& sigma, double r, std::vector<double>& K, int discretization_num_K, char discretizationType);
 
 	std::vector<double> thomasAlgo(Matrix<double>& A, Matrix<double>& B);
@@ -470,6 +485,7 @@ namespace AlgoUtilities {
 	Matrix<double> createATriagonalMatrix(Matrix<double>& alpha, Matrix<double>& beta, Matrix<double>& gamma, int timeIndex);
 
 
+	// Additional functionality
 	Matrix<double>* BSPriceMatrixCreator(MarketData3D* md, DealData3D* dd);
 
 	static double NormalCDFCody(double u);
